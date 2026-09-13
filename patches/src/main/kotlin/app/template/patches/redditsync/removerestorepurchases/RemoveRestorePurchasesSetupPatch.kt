@@ -1,0 +1,69 @@
+package app.template.patches.redditsync.removerestorepurchases
+
+import app.morphe.patcher.patch.bytecodePatch
+import app.template.patches.redditsync.removerestorepurchases.fingerprints.preferencesNewRootFragmentFingerprint
+import com.android.tools.smali.dexlib2.Opcode
+import com.android.tools.smali.dexlib2.iface.instruction.NarrowLiteralInstruction
+
+/**
+ * Target app: Sync for Reddit (com.laurencedawson.reddit_sync), v23.06.30-13:39.
+ *
+ * Confirmed via a real device crash log and the actual smali (via apktool): the root
+ * settings fragment's onCreatePreferences-equivalent method looks up the preference
+ * whose key is the string form of @integer/PURCHASES (the "Restore purchases" entry)
+ * and force-sets its visibility to true with no null check:
+ *
+ *   const p1, 0x7f0a0016                                 ; @integer/PURCHASES
+ *   invoke-static {p1}, RedditApplication;->g(I)I         ; resolve to its int value
+ *   move-result p1
+ *   invoke-static {p1}, Integer;->toString(I)Ljava/lang/String;
+ *   move-result-object p1
+ *   invoke-virtual {p0, p1}, PreferenceFragmentCompat;->findPreference(...)Preference;
+ *   move-result-object p1
+ *   invoke-virtual {p1, v3}, Preference;->setVisible(Z)V     ; NPEs: p1 is null
+ *
+ * Once removeRestorePurchasesResourcesPatch deletes that entry, this crashes the
+ * settings screen every time it's opened. This patch removes those 8 instructions
+ * (found by their unique "const p1, 0x7f0a0016" anchor) outright, mirroring
+ * removeSwipeSensSetupPatch's fix for the same pattern.
+ *
+ * Depends on removeRestorePurchasesResourcesPatch (the XML deletion) so selecting
+ * either one in Morphe Manager applies both together.
+ */
+val removeRestorePurchasesPatch = bytecodePatch(
+    name = "Remove Restore purchases",
+    description = "Removes the \"Restore purchases\" entry from Sync for Reddit's settings, " +
+        "plus the Sync Ultra screen's \"Restore subscription\" and dev-only \"Reset " +
+        "subscription locally\" buttons, now that Ultra and ad removal are unlocked " +
+        "unconditionally and don't depend on this state.",
+    default = true,
+) {
+    dependsOn(removeRestorePurchasesResourcesPatch)
+
+    compatibleWith("com.laurencedawson.reddit_sync"("23.06.30-13:39"))
+
+    execute {
+        val method = preferencesNewRootFragmentFingerprint.method
+        val implementation = method.implementation!!
+
+        val purchasesIntegerIndex = implementation.instructions.indexOfFirst { instruction ->
+            instruction.opcode == Opcode.CONST &&
+                (instruction as? NarrowLiteralInstruction)?.narrowLiteral == 0x7f0a0016
+        }
+
+        if (purchasesIntegerIndex == -1) {
+            error(
+                "Could not find the \"Restore purchases\" force-visibility setup code in " +
+                    "the root preferences fragment. This build's method structure may " +
+                    "differ from what was inspected — re-check with apktool.",
+            )
+        }
+
+        // The block is exactly 8 instructions: load the @integer/PURCHASES id, resolve
+        // it, convert to a key string, look up the preference, and call setVisible(true)
+        // on the (now null) result.
+        repeat(8) {
+            implementation.removeInstruction(purchasesIntegerIndex)
+        }
+    }
+}

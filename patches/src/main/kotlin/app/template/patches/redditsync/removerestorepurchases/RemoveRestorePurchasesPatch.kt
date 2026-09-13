@@ -23,21 +23,27 @@ import org.w3c.dom.Element
  * Since unlockUltraPatch and removeAdsPatch already force Ultra unlocked and ads off
  * unconditionally at their respective gate functions — ignoring the SharedPreferences
  * state these restore/reset buttons read and write entirely — none of this has any
- * effect on the app's behavior anymore either way. Removing all of these navigation
- * entries makes every class they would have used permanently unreachable — nothing
- * ever constructs or calls into them again, which is the practical equivalent of
- * deleting that code. This patcher's API has no way to excise classes from the
+ * effect on the app's behavior anymore either way. Removing the root-menu and Ultra
+ * screen navigation entries makes UltraRestorePreference/UltraResetPreference (and
+ * their layouts, deleted below) permanently unreachable — the practical equivalent of
+ * deleting that code, since this patcher's API has no way to excise classes from the
  * compiled app outright (confirmed: no such method exists on BytecodePatchContext or
- * anywhere else in the patcher), so removing the entry points and the now-orphaned
- * resource files is as thorough a cleanup as is possible here.
+ * anywhere else in the patcher).
+ *
+ * cat_purchases.xml / cat_onboarding_purchases.xml and PurchasesPreference are NOT
+ * fully cleaned up the same way — see the comment at their delete() call site below
+ * for why: a second, independent entry point into that screen exists elsewhere in the
+ * app, found by hand in real smali.
+ *
+ * Deleting the "Restore purchases" entry alone crashed the root settings screen on
+ * open — see removeRestorePurchasesSetupPatch.kt for why and what it fixes.
  */
-val removeRestorePurchasesPatch = resourcePatch(
-    name = "Remove Restore purchases",
+val removeRestorePurchasesResourcesPatch = resourcePatch(
+    name = "Remove Restore purchases (resources)",
     description = "Removes the \"Restore purchases\" entry from Sync for Reddit's settings, " +
         "plus the Sync Ultra screen's \"Restore subscription\" and dev-only \"Reset " +
         "subscription locally\" buttons, now that Ultra and ad removal are unlocked " +
         "unconditionally and don't depend on this state.",
-    default = true,
 ) {
     compatibleWith("com.laurencedawson.reddit_sync"("23.06.30-13:39"))
 
@@ -99,8 +105,14 @@ val removeRestorePurchasesPatch = resourcePatch(
             toRemove.forEach { it.parentNode?.removeChild(it) }
         }
 
-        delete("res/xml/cat_purchases.xml")
-        delete("res/xml/cat_onboarding_purchases.xml")
+        // cat_purchases.xml / cat_onboarding_purchases.xml are deliberately NOT deleted:
+        // AlreadyPurchasedAlertDialogBottomSheet (t9/d, shown when Play Billing reports an
+        // item as already owned) launches PreferencesActivity directly with a
+        // mode=PURCHASES intent extra, bypassing cat_root.xml entirely — a second,
+        // separate entry point to this screen found by hand in real smali. Rather than
+        // chase down every possible caller, the screen's resources are left intact (just
+        // unreachable from the main menu) so any such path still resolves instead of
+        // crashing with a missing-resource error.
         delete("res/layout/preference_ultra_restore.xml")
         delete("res/layout/preference_ultra_reset.xml")
     }
