@@ -1,0 +1,455 @@
+<title>AfterSync Expressive Concept</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Lexend:wght@400;500;600;700&family=Roboto:wght@400;500;700&display=swap');
+
+  :root {
+    --bg: #f3f1ee;
+    --bg-grain: #ece9e4;
+    --ink: #211d1a;
+    --ink-soft: #6b6459;
+    --rule: #ddd8d0;
+    --accent: #c1401f;
+    --card: #ffffff;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #17140f;
+      --bg-grain: #1e1a14;
+      --ink: #f1ece3;
+      --ink-soft: #a89e8e;
+      --rule: #34302a;
+      --accent: #ff8a5c;
+      --card: #201c17;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #17140f;
+    --bg-grain: #1e1a14;
+    --ink: #f1ece3;
+    --ink-soft: #a89e8e;
+    --rule: #34302a;
+    --accent: #ff8a5c;
+    --card: #201c17;
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    background-image: radial-gradient(circle at 1px 1px, var(--bg-grain) 1px, transparent 0);
+    background-size: 22px 22px;
+    color: var(--ink);
+    font-family: 'Lexend', system-ui, sans-serif;
+    padding: 48px 24px 80px;
+  }
+
+  .wrap { max-width: 1180px; margin: 0 auto; }
+
+  header.page-head {
+    max-width: 640px;
+    margin-bottom: 56px;
+  }
+  .eyebrow {
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin: 0 0 14px;
+  }
+  h1 {
+    font-size: clamp(28px, 4vw, 38px);
+    font-weight: 700;
+    line-height: 1.15;
+    margin: 0 0 16px;
+    text-wrap: balance;
+  }
+  .page-head p {
+    font-size: 15.5px;
+    line-height: 1.65;
+    color: var(--ink-soft);
+    margin: 0 0 10px;
+    max-width: 58ch;
+  }
+  .page-head p strong { color: var(--ink); font-weight: 600; }
+
+  .compare {
+    display: flex;
+    gap: 40px;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    margin-bottom: 52px;
+  }
+  .col {
+    flex: 1 1 300px;
+    max-width: 340px;
+  }
+  .col-label {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    margin-bottom: 16px;
+  }
+  .col-label .name {
+    font-size: 17px;
+    font-weight: 600;
+  }
+  .col-label .tag {
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+    border: 1px solid var(--rule);
+    border-radius: 100px;
+    padding: 2px 9px;
+  }
+
+  /* ---- phone frame ---- */
+  .phone {
+    border-radius: 34px;
+    padding: 10px;
+    background: #0d0d0d;
+    box-shadow: 0 24px 48px -20px rgba(0,0,0,0.35);
+  }
+  .screen {
+    border-radius: 26px;
+    overflow: hidden;
+    height: 560px;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    font-family: var(--screen-font, 'Roboto', sans-serif);
+  }
+  .statusbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 20px 4px;
+    font-size: 12px;
+    font-weight: 500;
+    flex: none;
+  }
+  .statusbar .icons { display: flex; gap: 5px; align-items: center; }
+  .list { flex: 1; overflow: hidden; }
+
+  .appbar {
+    padding: 10px 18px 14px;
+    font-size: 21px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .search-row {
+    margin: 0 16px 10px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 14px;
+    font-size: 13px;
+  }
+
+  .cat-head {
+    font-size: 11.5px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    padding: 14px 18px 6px;
+  }
+
+  .row {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 9px 18px;
+  }
+  .row .icon {
+    flex: none;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .row .icon svg { width: 17px; height: 17px; }
+  .row .text { min-width: 0; }
+  .row .title { font-size: 13.5px; font-weight: 500; line-height: 1.3; }
+  .row .sub { font-size: 11px; line-height: 1.35; margin-top: 1px; }
+  .row .sub, .row .title { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+  /* ---------- CURRENT skin ---------- */
+  .phone--current .screen {
+    background: #fdfdfc;
+    color: #1b1c1e;
+    --screen-font: 'Roboto', sans-serif;
+  }
+  .phone--current .statusbar { color: #1b1c1e; }
+  .phone--current .appbar { background: #fdfdfc; color: #1b1c1e; }
+  .phone--current .search-row {
+    background: #eef0f2;
+    border-radius: 8px;
+    color: #6c7076;
+  }
+  .phone--current .cat-head { color: #6c7076; }
+  .phone--current .row + .row { border-top: 1px solid #eeeeee; }
+  .phone--current .row .icon { color: #5c6167; }
+  .phone--current .row .icon svg { stroke: #5c6167; }
+  .phone--current .row .title { color: #1b1c1e; }
+  .phone--current .row .sub { color: #7a7e84; }
+  .phone--current .row.ultra .title { color: #245bd1; font-weight: 600; }
+  .phone--current .row.ultra .icon svg { stroke: #245bd1; }
+
+  /* ---------- EXPRESSIVE skin ---------- */
+  .phone--expressive .screen {
+    background: #fff3ea;
+    color: #2b1b12;
+    --screen-font: 'Lexend', sans-serif;
+  }
+  .phone--expressive .statusbar { color: #2b1b12; }
+  .phone--expressive .appbar {
+    background: #fff3ea;
+    color: #2b1b12;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+  }
+  .phone--expressive .search-row {
+    background: #ffffff;
+    border-radius: 100px;
+    color: #8a7264;
+    box-shadow: 0 1px 0 rgba(43,27,18,0.05);
+  }
+  .phone--expressive .cat-head { color: #b4652f; }
+  .phone--expressive .row { border-radius: 18px; margin: 0 10px 4px; padding: 10px 12px; }
+  .phone--expressive .list { padding: 0 6px; }
+  .phone--expressive .row .icon {
+    width: 34px; height: 34px;
+    border-radius: 11px;
+    background: #ffdcc4;
+  }
+  .phone--expressive .row .icon svg { stroke: #b4441c; width: 18px; height: 18px; }
+  .phone--expressive .row .title { color: #2b1b12; font-weight: 600; }
+  .phone--expressive .row .sub { color: #8a7264; }
+  .phone--expressive .row.ultra {
+    background: #efe6fb;
+  }
+  .phone--expressive .row.ultra .icon { background: #d9c6f7; }
+  .phone--expressive .row.ultra .icon svg { stroke: #5b3a8e; }
+  .phone--expressive .row.ultra .title { color: #45296e; }
+  .phone--expressive .row.ultra .sub { color: #7c66a0; }
+
+  /* legend */
+  .legend {
+    border-top: 1px solid var(--rule);
+    padding-top: 36px;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+    gap: 28px 32px;
+  }
+  .legend h2 {
+    grid-column: 1 / -1;
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+    margin: 0 0 4px;
+  }
+  .legend-item .num {
+    font-family: 'Roboto', sans-serif;
+    font-variant-numeric: tabular-nums;
+    font-size: 12px;
+    color: var(--accent);
+    font-weight: 600;
+    margin-bottom: 6px;
+  }
+  .legend-item h3 {
+    font-size: 15px;
+    font-weight: 600;
+    margin: 0 0 6px;
+  }
+  .legend-item p {
+    font-size: 13.5px;
+    line-height: 1.55;
+    color: var(--ink-soft);
+    margin: 0;
+  }
+
+  .caveat {
+    margin-top: 48px;
+    padding: 20px 24px;
+    border-radius: 14px;
+    background: var(--card);
+    border: 1px solid var(--rule);
+    max-width: 720px;
+  }
+  .caveat p {
+    font-size: 13.5px;
+    line-height: 1.6;
+    color: var(--ink-soft);
+    margin: 0;
+  }
+  .caveat strong { color: var(--ink); }
+
+  @media (max-width: 640px) {
+    .compare { gap: 28px; }
+    .col { max-width: 100%; }
+  }
+</style>
+
+<div class="wrap">
+  <header class="page-head">
+    <p class="eyebrow">AfterSync &times; Material 3 Expressive</p>
+    <h1>What a restyle would actually change</h1>
+    <p>Two versions of the same Settings screen &mdash; <strong>the real rows AfterSync builds today</strong> (Search, Appearance, Content) &mdash; rendered in the app's current look and in an illustrative Material&nbsp;3 Expressive treatment. Same content, same hierarchy, different visual language.</p>
+  </header>
+
+  <div class="compare">
+    <div class="col">
+      <div class="col-label">
+        <span class="name">Current</span>
+        <span class="tag">Today</span>
+      </div>
+      <div class="phone phone--current">
+        <div class="screen">
+          <div class="statusbar">
+            <span>9:41</span>
+            <span class="icons">&#9679;&#9679;&#9679;</span>
+          </div>
+          <div class="appbar">Settings</div>
+          <div class="list">
+            <div class="search-row">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+              Search settings
+            </div>
+            <div class="cat-head">Appearance</div>
+            <div class="row">
+              <span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></span>
+              <div class="text">
+                <div class="title">General</div>
+                <div class="sub">Toolbar, navigation style &amp; more</div>
+              </div>
+            </div>
+            <div class="row">
+              <span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg></span>
+              <div class="text">
+                <div class="title">Dark mode</div>
+                <div class="sub">Light, dark or auto</div>
+              </div>
+            </div>
+            <div class="row">
+              <span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="13.5" cy="6.5" r=".5"/><circle cx="17.5" cy="10.5" r=".5"/><circle cx="8.5" cy="7.5" r=".5"/><circle cx="6.5" cy="12.5" r=".5"/><path d="M12 2a10 10 0 1 0 10 10c0-1-1-2-2-2h-2a2 2 0 0 1-2-2 3 3 0 0 1 3-3c1 0 2-1 2-2a10 10 0 0 0-9-3z"/></svg></span>
+              <div class="text">
+                <div class="title">Theme management</div>
+                <div class="sub">Customize the app theme</div>
+              </div>
+            </div>
+            <div class="cat-head">Content</div>
+            <div class="row ultra">
+              <span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2 3 14h8l-1 8 10-12h-8l1-8z"/></svg></span>
+              <div class="text">
+                <div class="title">Sync Ultra</div>
+                <div class="sub">Website previews, backup &amp; more</div>
+              </div>
+            </div>
+            <div class="row">
+              <span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 0 20 15.3 15.3 0 0 1 0-20z"/></svg></span>
+              <div class="text">
+                <div class="title">Reddit web preferences</div>
+                <div class="sub">Configure reddit.com preferences</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col">
+      <div class="col-label">
+        <span class="name">Material 3 Expressive</span>
+        <span class="tag">Concept</span>
+      </div>
+      <div class="phone phone--expressive">
+        <div class="screen">
+          <div class="statusbar">
+            <span>9:41</span>
+            <span class="icons">&#9679;&#9679;&#9679;</span>
+          </div>
+          <div class="appbar">Settings</div>
+          <div class="list">
+            <div class="search-row">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+              Search settings
+            </div>
+            <div class="cat-head">Appearance</div>
+            <div class="row">
+              <span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></span>
+              <div class="text">
+                <div class="title">General</div>
+                <div class="sub">Toolbar, navigation style &amp; more</div>
+              </div>
+            </div>
+            <div class="row">
+              <span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg></span>
+              <div class="text">
+                <div class="title">Dark mode</div>
+                <div class="sub">Light, dark or auto</div>
+              </div>
+            </div>
+            <div class="row">
+              <span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="13.5" cy="6.5" r=".5"/><circle cx="17.5" cy="10.5" r=".5"/><circle cx="8.5" cy="7.5" r=".5"/><circle cx="6.5" cy="12.5" r=".5"/><path d="M12 2a10 10 0 1 0 10 10c0-1-1-2-2-2h-2a2 2 0 0 1-2-2 3 3 0 0 1 3-3c1 0 2-1 2-2a10 10 0 0 0-9-3z"/></svg></span>
+              <div class="text">
+                <div class="title">Theme management</div>
+                <div class="sub">Customize the app theme</div>
+              </div>
+            </div>
+            <div class="cat-head">Content</div>
+            <div class="row ultra">
+              <span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M13 2 3 14h8l-1 8 10-12h-8l1-8z"/></svg></span>
+              <div class="text">
+                <div class="title">Sync Ultra</div>
+                <div class="sub">Website previews, backup &amp; more</div>
+              </div>
+            </div>
+            <div class="row">
+              <span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 0 20 15.3 15.3 0 0 1 0-20z"/></svg></span>
+              <div class="text">
+                <div class="title">Reddit web preferences</div>
+                <div class="sub">Configure reddit.com preferences</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="legend">
+    <h2>What's actually different</h2>
+    <div class="legend-item">
+      <div class="num">01 &mdash; Color roles</div>
+      <h3>Flat grey &rarr; tonal ember</h3>
+      <p>The current screen tints icons and links a single flat blue. The Expressive version pulls a warm ember accent through icon containers, category labels, and the Ultra row, with a separate violet role reserved for that one Ultra-tier row.</p>
+    </div>
+    <div class="legend-item">
+      <div class="num">02 &mdash; Shape</div>
+      <h3>Square rows &rarr; contained rows</h3>
+      <p>Rows go from edge-to-edge dividers to individually rounded, inset containers &mdash; each row reads as its own tappable object instead of one continuous list.</p>
+    </div>
+    <div class="legend-item">
+      <div class="num">03 &mdash; Icon treatment</div>
+      <h3>Bare glyph &rarr; tonal container</h3>
+      <p>Icons move from plain grey strokes into small rounded-square containers tinted from the same palette &mdash; the M3 Expressive "icon container" pattern.</p>
+    </div>
+    <div class="legend-item">
+      <div class="num">04 &mdash; Type</div>
+      <h3>Roboto default &rarr; Lexend, set deliberately</h3>
+      <p>Titles pick up more weight and a rounder letterform; the search field and app bar both commit to the same face instead of inheriting the system default.</p>
+    </div>
+  </div>
+
+  <div class="caveat">
+    <p><strong>What this mockup can't show:</strong> Expressive's spring-based motion and new component shapes (morphing toolbars, expressive FAB menus) come from Material Components library code this app wasn't compiled against &mdash; a patch can restyle colors, shape, and type like above, but can't add component behavior the library never shipped.</p>
+  </div>
+</div>
