@@ -1,7 +1,7 @@
 {
-  "created_at": "2026-09-13T15:59:08",
-  "description": "## [1.3.1](https://github.com/ram-prices/sync-patches/compare/v1.3.0...v1.3.1) (2026-09-13)\n\n### 🐛 Bug Fixes\n\n* crash on opening Settings after removing Restore purchases ([290e9d9](https://github.com/ram-prices/sync-patches/commit/290e9d9812e38d4f1fabe4d4244883bb3ad8b192))",
-  "download_url": "https://github.com/ram-prices/sync-patches/releases/download/v1.3.1/patches-1.3.1.mpp",
+  "created_at": "2026-09-13T16:08:30",
+  "description": "## [1.3.2](https://github.com/ram-prices/sync-patches/compare/v1.3.1...v1.3.2) (2026-09-13)\n\n### 🐛 Bug Fixes\n\n* crash on opening Sync Ultra; move it under Content ([cea8af2](https://github.com/ram-prices/sync-patches/commit/cea8af23528b167f9a6f5b58f73bf77e259c7218))",
+  "download_url": "https://github.com/ram-prices/sync-patches/releases/download/v1.3.2/patches-1.3.2.mpp",
   "signature_download_url": "",
-  "version": "1.3.1"
+  "version": "1.3.2"
 }

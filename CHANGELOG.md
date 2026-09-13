@@ -1,3 +1,9 @@
+## [1.3.2](https://github.com/ram-prices/sync-patches/compare/v1.3.1...v1.3.2) (2026-09-13)
+
+### 🐛 Bug Fixes
+
+* crash on opening Sync Ultra; move it under Content ([cea8af2](https://github.com/ram-prices/sync-patches/commit/cea8af23528b167f9a6f5b58f73bf77e259c7218))
+
 ## [1.3.1](https://github.com/ram-prices/sync-patches/compare/v1.3.0...v1.3.1) (2026-09-13)
 
 ### 🐛 Bug Fixes
