@@ -1,7 +1,7 @@
 {
-  "created_at": "2026-09-13T16:41:40",
-  "description": "## [1.4.1](https://github.com/ram-prices/sync-patches/compare/v1.4.0...v1.4.1) (2026-09-13)\n\n### 🐛 Bug Fixes\n\n* revert preview.redd.it image fix, it crashes the app on launch ([322305b](https://github.com/ram-prices/sync-patches/commit/322305b0d52c404ca5047c955933f16d2bb8f1d4))",
-  "download_url": "https://github.com/ram-prices/sync-patches/releases/download/v1.4.1/patches-1.4.1.mpp",
+  "created_at": "2026-09-13T16:48:16",
+  "description": "## [1.5.0](https://github.com/ram-prices/sync-patches/compare/v1.4.1...v1.5.0) (2026-09-13)\n\n### ✨ New Features\n\n* fix preview.redd.it images, take 2 (branch-free) ([1d6e6e8](https://github.com/ram-prices/sync-patches/commit/1d6e6e89e079f183c5ed2956352b667a8fafb3c0))",
+  "download_url": "https://github.com/ram-prices/sync-patches/releases/download/v1.5.0/patches-1.5.0.mpp",
   "signature_download_url": "",
-  "version": "1.4.1"
+  "version": "1.5.0"
 }

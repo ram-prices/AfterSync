@@ -1,3 +1,9 @@
+## [1.5.0](https://github.com/ram-prices/sync-patches/compare/v1.4.1...v1.5.0) (2026-09-13)
+
+### ✨ New Features
+
+* fix preview.redd.it images, take 2 (branch-free) ([1d6e6e8](https://github.com/ram-prices/sync-patches/commit/1d6e6e89e079f183c5ed2956352b667a8fafb3c0))
+
 ## [1.4.1](https://github.com/ram-prices/sync-patches/compare/v1.4.0...v1.4.1) (2026-09-13)
 
 ### 🐛 Bug Fixes
