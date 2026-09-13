@@ -71,7 +71,7 @@ val fixPreviewImagesPatch = bytecodePatch(
         "properly in Sync for Reddit.",
     default = true,
 ) {
-    compatibleWith("com.laurencedawson.reddit_sync"("23.06.30-13:39"))
+    compatibleWith("com.laurencedawson.reddit_sync"("v23.06.30-13:39"))
 
     execute {
         val method = syncHtmlToSpannedConverterFingerprint.method

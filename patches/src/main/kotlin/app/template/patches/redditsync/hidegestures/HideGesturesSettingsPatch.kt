@@ -26,7 +26,7 @@ val hideGesturesSettingsPatch = resourcePatch(
     description = "Removes the \"Gestures\" section (Swipe to return, Dim behind activity, " +
         "Swipe to return sensitivity) from Sync for Reddit's General settings screen.",
 ) {
-    compatibleWith("com.laurencedawson.reddit_sync"("23.06.30-13:39"))
+    compatibleWith("com.laurencedawson.reddit_sync"("v23.06.30-13:39"))
 
     execute {
         document("res/xml/cat_general.xml").use { document ->

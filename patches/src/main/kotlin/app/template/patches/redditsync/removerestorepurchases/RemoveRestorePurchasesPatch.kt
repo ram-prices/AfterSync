@@ -45,7 +45,7 @@ val removeRestorePurchasesResourcesPatch = resourcePatch(
         "subscription locally\" buttons, now that Ultra and ad removal are unlocked " +
         "unconditionally and don't depend on this state.",
 ) {
-    compatibleWith("com.laurencedawson.reddit_sync"("23.06.30-13:39"))
+    compatibleWith("com.laurencedawson.reddit_sync"("v23.06.30-13:39"))
 
     execute {
         document("res/xml/cat_root.xml").use { document ->

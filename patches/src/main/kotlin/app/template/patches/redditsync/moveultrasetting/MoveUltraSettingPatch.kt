@@ -22,7 +22,7 @@ val moveUltraSettingPatch = resourcePatch(
         "\"New\" category to the top of the \"Content\" category.",
     default = true,
 ) {
-    compatibleWith("com.laurencedawson.reddit_sync"("23.06.30-13:39"))
+    compatibleWith("com.laurencedawson.reddit_sync"("v23.06.30-13:39"))
 
     execute {
         document("res/xml/cat_root.xml").use { document ->

@@ -51,7 +51,7 @@ val removeRestorePurchasesPatch = bytecodePatch(
 ) {
     dependsOn(removeRestorePurchasesResourcesPatch)
 
-    compatibleWith("com.laurencedawson.reddit_sync"("23.06.30-13:39"))
+    compatibleWith("com.laurencedawson.reddit_sync"("v23.06.30-13:39"))
 
     execute {
         val method = preferencesNewRootFragmentFingerprint.method

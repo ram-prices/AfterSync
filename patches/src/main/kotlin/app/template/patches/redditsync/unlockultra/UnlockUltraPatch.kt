@@ -43,7 +43,7 @@ val unlockUltraPatch = bytecodePatch(
         "otherwise keep making network calls to a backend that may no longer respond.",
     default = true,
 ) {
-    compatibleWith("com.laurencedawson.reddit_sync"("23.06.30-13:39"))
+    compatibleWith("com.laurencedawson.reddit_sync"("v23.06.30-13:39"))
 
     execute {
         ultraUnlockedGateFingerprint.method.addInstructions(
