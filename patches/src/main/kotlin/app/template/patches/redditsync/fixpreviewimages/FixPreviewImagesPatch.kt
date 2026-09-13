@@ -39,7 +39,19 @@ import com.android.tools.smali.dexlib2.iface.reference.StringReference
  * instruction in place of the old height lookup — no labels, no jumps, nothing for a
  * later edit to invalidate.
  *
- * Both edits are anchored on the "preview.redd.it" string constant, which appears
+ * A second, separate hardcoded assumption in the same block also needed fixing (found
+ * via a real device log showing Sync's own "failed to parse this content" fallback,
+ * confirming a caught runtime exception rather than a verifier-level failure this time):
+ * right after the height fix above, the method computes
+ * `url.substring(0, url.indexOf("&height"))` to build the final display URL by
+ * truncating everything from "&height" onward. Since real preview.redd.it URLs never
+ * contain "&height" either, `indexOf` returns -1 and `substring(0, -1)` throws a
+ * StringIndexOutOfBoundsException. Fixed by searching for the first "&" generally
+ * instead of "&height" specifically — this still finds the exact same truncation point
+ * for any URL that *does* have "&height" (it would be the first "&"), so this is a
+ * strict generalization, not a behavior change for that case.
+ *
+ * All edits are anchored on the "preview.redd.it" string constant, which appears
  * exactly once in this method (confirmed by hand) — everything else this ~4500-line
  * method does (every other URL type it recognizes, the video/gif/imgur/gallery handling,
  * the website-preview-card logic for genuinely unrecognized links) is untouched.
@@ -85,5 +97,25 @@ val fixPreviewImagesPatch = bytecodePatch(
         // "height" query parameter that real preview.redd.it URLs don't send.
         repeat(4) { implementation.removeInstruction(base + 18) }
         method.addInstructions(base + 18, "move p2, v1")
+
+        // Searched fresh (rather than computed as a further fixed offset from "base")
+        // since it comes after the edits above and this string constant is unique in
+        // the method on its own, so there's no ambiguity risk in finding it this way.
+        val ampHeightIndex = implementation.instructions.indexOfFirst { instruction ->
+            instruction.opcode == Opcode.CONST_STRING &&
+                ((instruction as? ReferenceInstruction)?.reference as? StringReference)
+                    ?.string == "&height"
+        }
+
+        if (ampHeightIndex == -1) {
+            error(
+                "Could not find the \"&height\" URL-truncation code in " +
+                    "SyncHtmlToSpannedConverter. This build's method structure may differ " +
+                    "from what was inspected — re-check with apktool.",
+            )
+        }
+
+        implementation.removeInstruction(ampHeightIndex)
+        method.addInstructions(ampHeightIndex, "const-string v3, \"&\"")
     }
 }
