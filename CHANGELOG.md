@@ -1,3 +1,9 @@
+## [1.8.2](https://github.com/ram-prices/AfterSync/compare/v1.8.1...v1.8.2) (2026-09-13)
+
+### 🐛 Bug Fixes
+
+* crash on opening Sync Ultra after removing "Settings cloud backup" ([b98ea87](https://github.com/ram-prices/AfterSync/commit/b98ea8755a0e240c232eb3ac2c1bdfb58de2af34))
+
 ## [1.8.1](https://github.com/ram-prices/AfterSync/compare/v1.8.0...v1.8.1) (2026-09-13)
 
 ### 🐛 Bug Fixes
