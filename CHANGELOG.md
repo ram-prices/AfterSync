@@ -1,3 +1,9 @@
+## [1.2.0](https://github.com/ram-prices/sync-patches/compare/v1.1.0...v1.2.0) (2026-09-13)
+
+### ✨ New Features
+
+* remove telemetry, unlock Sync Ultra, and remove ads ([a26b910](https://github.com/ram-prices/sync-patches/commit/a26b9104fc4ac42ff05c4e344f3f0c7f7e8eee0f))
+
 ## [1.1.0](https://github.com/ram-prices/sync-patches/compare/v1.0.1...v1.1.0) (2026-09-13)
 
 ### 🐛 Bug Fixes
