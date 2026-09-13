@@ -1,3 +1,9 @@
+## [1.6.0](https://github.com/ram-prices/sync-patches/compare/v1.5.2...v1.6.0) (2026-09-13)
+
+### ✨ New Features
+
+* rebrand About screen, fix v-prefix in all version targets ([f653aba](https://github.com/ram-prices/sync-patches/commit/f653abac4aab257b3cca13efd1678cc8909cff99))
+
 ## [1.5.2](https://github.com/ram-prices/sync-patches/compare/v1.5.1...v1.5.2) (2026-09-13)
 
 ### 🐛 Bug Fixes
