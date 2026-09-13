@@ -1,3 +1,9 @@
+## [1.4.1](https://github.com/ram-prices/sync-patches/compare/v1.4.0...v1.4.1) (2026-09-13)
+
+### 🐛 Bug Fixes
+
+* revert preview.redd.it image fix, it crashes the app on launch ([322305b](https://github.com/ram-prices/sync-patches/commit/322305b0d52c404ca5047c955933f16d2bb8f1d4))
+
 ## [1.4.0](https://github.com/ram-prices/sync-patches/compare/v1.3.2...v1.4.0) (2026-09-13)
 
 ### ✨ New Features

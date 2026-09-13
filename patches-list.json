@@ -1,6 +1,6 @@
 {
   "NOTE": "Do NOT manually edit this file. This file is automatically updated when semantic release (release.yml) runs. Manually editing this file can break your releases and break third party tools that use this file.",
-  "version": "1.4.0",
+  "version": "1.4.1",
   "patches": [
     {
       "name": "Example Patch",
@@ -28,33 +28,6 @@
             },
             {
               "version": "1.0.2",
-              "versionCodes": null,
-              "isExperimental": false,
-              "minSdk": null,
-              "description": null
-            }
-          ]
-        }
-      ],
-      "options": []
-    },
-    {
-      "name": "Fix preview.redd.it comment/post images",
-      "description": "Fixes comment and post images hosted on preview.redd.it (Reddit's current inline-image hosting) showing as a raw link instead of embedding properly in Sync for Reddit.",
-      "default": true,
-      "category": null,
-      "dependencies": [],
-      "compatiblePackages": [
-        {
-          "packageName": "com.laurencedawson.reddit_sync",
-          "name": null,
-          "description": null,
-          "apkFileType": null,
-          "appIconColor": null,
-          "signatures": null,
-          "targets": [
-            {
-              "version": "23.06.30-13:39",
               "versionCodes": null,
               "isExperimental": false,
               "minSdk": null,
