@@ -1,6 +1,6 @@
 {
   "NOTE": "Do NOT manually edit this file. This file is automatically updated when semantic release (release.yml) runs. Manually editing this file can break your releases and break third party tools that use this file.",
-  "version": "1.8.0",
+  "version": "1.8.1",
   "patches": [
     {
       "name": "Clean up root settings menu",
@@ -311,7 +311,7 @@
     },
     {
       "name": "Remove Ultra cloud backup",
-      "description": "Removes the redundant, Firebase-backend-dependent \"Cloud backup and restore\" section from Sync for Reddit's settings.",
+      "description": "Removes the redundant, Firebase-backend-dependent \"Cloud backup and restore\" section, and the now-misleading \"Settings cloud backup\" shortcut to it, from Sync for Reddit's settings.",
       "default": true,
       "category": null,
       "dependencies": [
@@ -340,7 +340,7 @@
     },
     {
       "name": "Remove Ultra cloud backup (resources)",
-      "description": "Removes the redundant, Firebase-backend-dependent \"Cloud backup and restore\" section from Sync for Reddit's settings.",
+      "description": "Removes the redundant, Firebase-backend-dependent \"Cloud backup and restore\" section, and the now-misleading \"Settings cloud backup\" shortcut to it, from Sync for Reddit's settings.",
       "default": true,
       "category": null,
       "dependencies": [],

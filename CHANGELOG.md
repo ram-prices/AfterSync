@@ -1,3 +1,9 @@
+## [1.8.1](https://github.com/ram-prices/AfterSync/compare/v1.8.0...v1.8.1) (2026-09-13)
+
+### 🐛 Bug Fixes
+
+* remove leftover "Settings cloud backup" shortcut ([27e8d54](https://github.com/ram-prices/AfterSync/commit/27e8d54d469c33356a3506117fcf54ba4ab5499a))
+
 ## [1.8.0](https://github.com/ram-prices/AfterSync/compare/v1.7.3...v1.8.0) (2026-09-13)
 
 ### ✨ New Features

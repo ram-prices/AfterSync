@@ -1,7 +1,7 @@
 {
-  "created_at": "2026-09-13T21:20:44",
-  "description": "## [1.8.0](https://github.com/ram-prices/AfterSync/compare/v1.7.3...v1.8.0) (2026-09-13)\n\n### ✨ New Features\n\n* remove Ultra cloud backup and Website previews ([02fdf84](https://github.com/ram-prices/AfterSync/commit/02fdf8424ac645e9c090a3470c327848900bc538))",
-  "download_url": "https://github.com/ram-prices/AfterSync/releases/download/v1.8.0/patches-1.8.0.mpp",
+  "created_at": "2026-09-13T21:39:14",
+  "description": "## [1.8.1](https://github.com/ram-prices/AfterSync/compare/v1.8.0...v1.8.1) (2026-09-13)\n\n### 🐛 Bug Fixes\n\n* remove leftover \"Settings cloud backup\" shortcut ([27e8d54](https://github.com/ram-prices/AfterSync/commit/27e8d54d469c33356a3506117fcf54ba4ab5499a))",
+  "download_url": "https://github.com/ram-prices/AfterSync/releases/download/v1.8.1/patches-1.8.1.mpp",
   "signature_download_url": "",
-  "version": "1.8.0"
+  "version": "1.8.1"
 }
