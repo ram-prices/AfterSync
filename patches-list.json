@@ -1,6 +1,6 @@
 {
   "NOTE": "Do NOT manually edit this file. This file is automatically updated when semantic release (release.yml) runs. Manually editing this file can break your releases and break third party tools that use this file.",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "patches": [
     {
       "name": "Example Patch",
@@ -40,7 +40,7 @@
     },
     {
       "name": "Hide Gestures settings",
-      "description": "Removes the \"Gestures\" section (Swipe to return, Dim behind activity, Swipe to return sensitivity) from Sync for Reddit's General settings screen.",
+      "description": "Hides the \"Gestures\" section (Swipe to return, Dim behind activity, Swipe to return sensitivity) from Sync for Reddit's General settings screen.",
       "default": true,
       "category": null,
       "dependencies": [],
