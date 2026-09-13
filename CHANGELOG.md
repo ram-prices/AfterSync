@@ -1,3 +1,9 @@
+## [1.9.0](https://github.com/ram-prices/AfterSync/compare/v1.8.2...v1.9.0) (2026-09-13)
+
+### ✨ New Features
+
+* give settings icons a rounded tonal container (Expressive concept) ([92592aa](https://github.com/ram-prices/AfterSync/commit/92592aa03739419584b013f182acdcf53d72cdaa))
+
 ## [1.8.2](https://github.com/ram-prices/AfterSync/compare/v1.8.1...v1.8.2) (2026-09-13)
 
 ### 🐛 Bug Fixes
