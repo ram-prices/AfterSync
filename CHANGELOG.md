@@ -1,3 +1,9 @@
+## [1.10.0](https://github.com/ram-prices/AfterSync/compare/v1.9.0...v1.10.0) (2026-09-13)
+
+### ✨ New Features
+
+* make the settings search bar more compact ([d417eee](https://github.com/ram-prices/AfterSync/commit/d417eee404715d5910a692ebbbbcd47d6e058422))
+
 ## [1.9.0](https://github.com/ram-prices/AfterSync/compare/v1.8.2...v1.9.0) (2026-09-13)
 
 ### ✨ New Features
