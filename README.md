@@ -13,9 +13,9 @@ Click here to add these patches to Morphe: https://morphe.software/add-source?gi
 ## 🩹 Patches list
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.7.0](https://github.com/ram-prices/AfterSync/releases/tag/v1.7.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;14 patches total
+> **[v1.7.1](https://github.com/ram-prices/AfterSync/releases/tag/v1.7.1)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;15 patches total
 <details open>
-<summary>📦 com.laurencedawson.reddit_sync&nbsp;&nbsp;•&nbsp;&nbsp;14 patches</summary>
+<summary>📦 com.laurencedawson.reddit_sync&nbsp;&nbsp;•&nbsp;&nbsp;15 patches</summary>
 <br>
 
 **🎯 Supported versions:**
@@ -26,6 +26,7 @@ Click here to add these patches to Morphe: https://morphe.software/add-source?gi
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
 | [Clean up root settings menu](#clean-up-root-settings-menu) | Removes the "New" category ("Developer options", "Legacy settings", and its promotional banner) and moves "Run setup" into the "Other" category in Sync for Reddit's settings. |  |
+| [Clean up root settings menu (fix crash)](#clean-up-root-settings-menu-fix-crash) | Removes the dead "Developer options" visibility-check code left behind after removing it from Sync for Reddit's settings menu. |  |
 | [Fix preview.redd.it comment/post images](#fix-preview-redd-it-comment-post-images) | Fixes comment and post images hosted on preview.redd.it (Reddit's current inline-image hosting) showing as a raw link instead of embedding properly in Sync for Reddit. |  |
 | [Move Sync Ultra setting](#move-sync-ultra-setting) | Moves the "Sync Ultra" entry in Sync for Reddit's settings from the "New" category to the top of the "Content" category. |  |
 | [Rebrand About screen](#rebrand-about-screen) | Renames "Everything else" to "About", removes "Help and support"/"Rate app!"/the original Credits entries, adds a row for the original app's version, and repurposes two Credits rows and their links for Morphe and this patch repo's GitHub page in Sync for Reddit. |  |

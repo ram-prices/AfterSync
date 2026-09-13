@@ -1,3 +1,9 @@
+## [1.7.1](https://github.com/ram-prices/AfterSync/compare/v1.7.0...v1.7.1) (2026-09-13)
+
+### 🐛 Bug Fixes
+
+* crash on opening Settings after removing Developer options ([af6cdc4](https://github.com/ram-prices/AfterSync/commit/af6cdc462dd20c2247402b81a73c2fb5d878539a))
+
 ## [1.7.0](https://github.com/ram-prices/AfterSync/compare/v1.6.0...v1.7.0) (2026-09-13)
 
 ### 🐛 Bug Fixes
