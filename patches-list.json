@@ -1,6 +1,6 @@
 {
   "NOTE": "Do NOT manually edit this file. This file is automatically updated when semantic release (release.yml) runs. Manually editing this file can break your releases and break third party tools that use this file.",
-  "version": "1.10.0",
+  "version": "1.11.0",
   "patches": [
     {
       "name": "Clean up root settings menu",
@@ -88,11 +88,13 @@
       "options": []
     },
     {
-      "name": "Expressive Settings search bar",
-      "description": "Makes Sync for Reddit's settings search bar more compact, matching a Material 3 Expressive-inspired restyle.",
+      "name": "Expressive Settings row cards",
+      "description": "Gives every settings row its own rounded, inset card background, matching a Material 3 Expressive-inspired restyle.",
       "default": true,
       "category": null,
-      "dependencies": [],
+      "dependencies": [
+        "ResourcePatch"
+      ],
       "compatiblePackages": [
         {
           "packageName": "com.laurencedawson.reddit_sync",

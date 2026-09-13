@@ -1,3 +1,9 @@
+## [1.11.0](https://github.com/ram-prices/AfterSync/compare/v1.10.0...v1.11.0) (2026-09-13)
+
+### ✨ New Features
+
+* give each settings row its own rounded card; revert search bar ([ad58a1f](https://github.com/ram-prices/AfterSync/commit/ad58a1f9425f329e866dd91dc362bf43e6417b3b))
+
 ## [1.10.0](https://github.com/ram-prices/AfterSync/compare/v1.9.0...v1.10.0) (2026-09-13)
 
 ### ✨ New Features
