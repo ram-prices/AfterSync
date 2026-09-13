@@ -1,3 +1,9 @@
+## [1.11.1](https://github.com/ram-prices/AfterSync/compare/v1.11.0...v1.11.1) (2026-09-13)
+
+### 🐛 Bug Fixes
+
+* row cards didn't render, library overwrites root background ([db03c31](https://github.com/ram-prices/AfterSync/commit/db03c31d31bc5b8e3966b0297244c647409866bd))
+
 ## [1.11.0](https://github.com/ram-prices/AfterSync/compare/v1.10.0...v1.11.0) (2026-09-13)
 
 ### ✨ New Features

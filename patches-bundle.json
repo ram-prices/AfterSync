@@ -1,7 +1,7 @@
 {
-  "created_at": "2026-09-13T22:25:10",
-  "description": "## [1.11.0](https://github.com/ram-prices/AfterSync/compare/v1.10.0...v1.11.0) (2026-09-13)\n\n### ✨ New Features\n\n* give each settings row its own rounded card; revert search bar ([ad58a1f](https://github.com/ram-prices/AfterSync/commit/ad58a1f9425f329e866dd91dc362bf43e6417b3b))",
-  "download_url": "https://github.com/ram-prices/AfterSync/releases/download/v1.11.0/patches-1.11.0.mpp",
+  "created_at": "2026-09-13T22:37:44",
+  "description": "## [1.11.1](https://github.com/ram-prices/AfterSync/compare/v1.11.0...v1.11.1) (2026-09-13)\n\n### 🐛 Bug Fixes\n\n* row cards didn't render, library overwrites root background ([db03c31](https://github.com/ram-prices/AfterSync/commit/db03c31d31bc5b8e3966b0297244c647409866bd))",
+  "download_url": "https://github.com/ram-prices/AfterSync/releases/download/v1.11.1/patches-1.11.1.mpp",
   "signature_download_url": "",
-  "version": "1.11.0"
+  "version": "1.11.1"
 }
