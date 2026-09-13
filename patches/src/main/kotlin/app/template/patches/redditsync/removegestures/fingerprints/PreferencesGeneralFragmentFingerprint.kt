@@ -1,7 +1,7 @@
 package app.template.patches.redditsync.removegestures.fingerprints
- 
+
 import app.morphe.patcher.fingerprint
- 
+
 /**
  * Matches Sync for Reddit's General-settings fragment's onCreatePreferences
  * override (obfuscated as "C3" in v23.06.30-13:39, class "pa.l0"). Rather than
