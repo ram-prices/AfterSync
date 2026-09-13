@@ -1,3 +1,9 @@
+## [1.5.1](https://github.com/ram-prices/sync-patches/compare/v1.5.0...v1.5.1) (2026-09-13)
+
+### 🐛 Bug Fixes
+
+* preview.redd.it images still failing to parse ([f76a834](https://github.com/ram-prices/sync-patches/commit/f76a834d113d2106135a24b71b491ce985291bdd))
+
 ## [1.5.0](https://github.com/ram-prices/sync-patches/compare/v1.4.1...v1.5.0) (2026-09-13)
 
 ### ✨ New Features
