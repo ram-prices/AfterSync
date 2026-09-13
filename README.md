@@ -1,12 +1,10 @@
-# 👋🧩 Morphe Patches template
+# 🧩 AfterSync
 
-Template repository for Morphe Patches.
-
-## ❓ About
-
-Patches for apps I like.
-
-<!-- TODO: Update this about section with a brief introduction/summary about this repo and what it offers. -->
+Morphe patches for Sync for Reddit — an actively-updated patch set that keeps the
+now-abandoned app working: crash fixes for parts of the app that broke after the
+developer stopped maintaining it, removal of dead telemetry/ads/purchase-validation
+code that depended on servers that may no longer respond, and a fix for
+Reddit-hosted images no longer embedding properly in comments and posts.
 
 ### How to use these patches
 
@@ -15,22 +13,7 @@ Click here to add these patches to Morphe: https://morphe.software/add-source?gi
 ## 🩹 Patches list
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.5.2](https://github.com/ram-prices/sync-patches/releases/tag/v1.5.2)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;12 patches total
-<details open>
-<summary>📦 XYZ app&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
-<br>
-
-**🎯 Supported versions:**
-
-| 2.0.0 | 1.0.2 |
-| :---: | :---: |
-
-| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
-|----------|----------------|-----------|
-| [Example Patch](#example-patch) | Example patch to start with. |  |
-
-</details>
-
+> **[v1.5.2](https://github.com/ram-prices/sync-patches/releases/tag/v1.5.2)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;11 patches total
 <details open>
 <summary>📦 com.laurencedawson.reddit_sync&nbsp;&nbsp;•&nbsp;&nbsp;11 patches</summary>
 <br>
@@ -69,4 +52,4 @@ See the [Morphe documentation](https://github.com/MorpheApp/morphe-documentation
 
 ## 📜 License
 
-UserXYZ Patches are licensed under the [GNU General Public License v3.0](LICENSE)
+AfterSync patches are licensed under the [GNU General Public License v3.0](LICENSE)
