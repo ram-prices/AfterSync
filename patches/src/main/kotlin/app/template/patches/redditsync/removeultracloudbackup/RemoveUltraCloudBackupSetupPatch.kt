@@ -2,6 +2,7 @@ package app.template.patches.redditsync.removeultracloudbackup
 
 import app.morphe.patcher.patch.bytecodePatch
 import app.template.patches.redditsync.removeultracloudbackup.fingerprints.preferencesBackupFragmentFingerprint
+import app.template.patches.redditsync.removerestorepurchases.fingerprints.preferencesUltraFragmentFingerprint
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.reference.StringReference
@@ -23,6 +24,15 @@ import com.android.tools.smali.dexlib2.iface.reference.StringReference
  * rebrandAboutSetupPatch.kt. Because this block is the last thing the method does,
  * there's no code after it that could depend on any register it sets (unlike the
  * Developer-options removal, which needed care for exactly that reason).
+ *
+ * Also fixes a second crash from the same feature removal, found via a real device
+ * crash log: PreferencesUltraFragment's setup method (Lpa/l1;->s4, already patched
+ * elsewhere in this project) ALSO looks up "ultra_cloud" ("Settings cloud backup") by
+ * key to wire its click listener, with no null check — a block this project's own
+ * earlier review of "ultra_cloud" found but wrongly concluded was safe to leave alone
+ * (having only one reference to a key isn't the same as that reference being harmless
+ * once the key no longer exists). Removed the same way as the earlier ultra_enhancements
+ * fix in this method.
  *
  * Depends on removeUltraCloudBackupResourcesPatch (the XML deletion) so selecting
  * either one in Morphe Manager applies both together.
@@ -58,5 +68,26 @@ val removeUltraCloudBackupSetupPatch = bytecodePatch(
 
         val blockCount = implementation.instructions.size - 1 - blockStart
         repeat(blockCount) { implementation.removeInstruction(blockStart) }
+
+        val ultraMethod = preferencesUltraFragmentFingerprint.method
+        val ultraImpl = ultraMethod.implementation!!
+
+        val ultraCloudIndex = ultraImpl.instructions.indexOfFirst { instruction ->
+            instruction.opcode == Opcode.CONST_STRING &&
+                ((instruction as? ReferenceInstruction)?.reference as? StringReference)
+                    ?.string == "ultra_cloud"
+        }
+
+        if (ultraCloudIndex == -1) {
+            error(
+                "Could not find the \"ultra_cloud\" click-listener setup code in the " +
+                    "Ultra preferences fragment. This build's method structure may " +
+                    "differ from what was inspected — re-check with apktool.",
+            )
+        }
+
+        // 6 instructions: the "ultra_cloud" lookup, its findPreference call, and
+        // constructing + attaching the (now pointless) click listener.
+        repeat(6) { ultraImpl.removeInstruction(ultraCloudIndex) }
     }
 }
