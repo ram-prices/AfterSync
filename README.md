@@ -8,12 +8,12 @@ Reddit-hosted images no longer embedding properly in comments and posts.
 
 ### How to use these patches
 
-Click here to add these patches to Morphe: https://morphe.software/add-source?github=ram-prices/sync-patches
+Click here to add these patches to Morphe: https://morphe.software/add-source?github=ram-prices/AfterSync
 
 ## 🩹 Patches list
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.6.0](https://github.com/ram-prices/sync-patches/releases/tag/v1.6.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;13 patches total
+> **[v1.6.0](https://github.com/ram-prices/AfterSync/releases/tag/v1.6.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;13 patches total
 <details open>
 <summary>📦 com.laurencedawson.reddit_sync&nbsp;&nbsp;•&nbsp;&nbsp;13 patches</summary>
 <br>

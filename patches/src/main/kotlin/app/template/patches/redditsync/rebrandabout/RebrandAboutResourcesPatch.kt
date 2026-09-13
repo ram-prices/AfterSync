@@ -18,7 +18,7 @@ import org.w3c.dom.Element
  *   bytecode changes:
  *   - "credit_dev" becomes "Morphe" / links to https://github.com/morpheapp instead of
  *     /u/ljdawson.
- *   - "backers" becomes "ram-prices/sync-patches" and links to the repo on GitHub
+ *   - "backers" becomes "ram-prices/AfterSync" and links to the repo on GitHub
  *     instead of opening a Patreon-backers dialog (see rebrandAboutSetupPatch.kt for
  *     that URL swap).
  * - Adds a new, non-clickable "Sync for Reddit" row right after "about_preference"
@@ -98,7 +98,7 @@ val rebrandAboutResourcesPatch = resourcePatch(
 
             val back = backers ?: error("Could not find \"backers\" in cat_other.xml.")
             back.setAttribute("android:icon", "@drawable/outline_info_24")
-            back.setAttribute("android:title", "ram-prices/sync-patches")
+            back.setAttribute("android:title", "ram-prices/AfterSync")
             back.setAttribute("android:summary", "Developed using Claude — tap to view on GitHub")
 
             // New static row: the original app identity/version, kept separate now that

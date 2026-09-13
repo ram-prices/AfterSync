@@ -173,7 +173,7 @@ val rebrandAboutSetupPatch = bytecodePatch(
         aboutImpl.removeInstruction(releaseNotesIndex)
         aboutMethod.addInstructions(
             releaseNotesIndex,
-            "const-string v0, \"https://github.com/ram-prices/sync-patches/releases\"",
+            "const-string v0, \"https://github.com/ram-prices/AfterSync/releases\"",
         )
 
         // 7. licenses_preference's listener: swap the linked URL.
@@ -190,7 +190,7 @@ val rebrandAboutSetupPatch = bytecodePatch(
         licensesImpl.removeInstruction(licensesUrlIndex)
         licensesMethod.addInstructions(
             licensesUrlIndex,
-            "const-string v0, \"https://github.com/ram-prices/sync-patches/blob/main/LICENSE\"",
+            "const-string v0, \"https://github.com/ram-prices/AfterSync/blob/main/LICENSE\"",
         )
 
         // 8. backers' listener: open this repo's GitHub page instead of a Patreon dialog.
@@ -200,7 +200,7 @@ val rebrandAboutSetupPatch = bytecodePatch(
                 iget-object p1, p0, Lpa/w0${'$'}a;->a:Lpa/w0;
                 invoke-virtual {p1}, Landroidx/fragment/app/Fragment;->B0()Landroidx/fragment/app/FragmentActivity;
                 move-result-object p1
-                const-string v0, "https://github.com/ram-prices/sync-patches"
+                const-string v0, "https://github.com/ram-prices/AfterSync"
                 invoke-static {p1, v0}, Ly7/b;->b(Landroid/content/Context;Ljava/lang/String;)Z
                 const/4 p1, 0x1
                 return p1
