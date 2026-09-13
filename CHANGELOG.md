@@ -1,3 +1,9 @@
+## [1.4.0](https://github.com/ram-prices/sync-patches/compare/v1.3.2...v1.4.0) (2026-09-13)
+
+### ✨ New Features
+
+* fix preview.redd.it images showing as raw links ([fc7e5c8](https://github.com/ram-prices/sync-patches/commit/fc7e5c87609ca6d20c94538fe70c7ed15e8bd5cb))
+
 ## [1.3.2](https://github.com/ram-prices/sync-patches/compare/v1.3.1...v1.3.2) (2026-09-13)
 
 ### 🐛 Bug Fixes
