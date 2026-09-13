@@ -18,11 +18,22 @@ import org.w3c.dom.Element
  * See removeUltraCloudBackupSetupPatch.kt for the matching bytecode removal — deleting
  * this section alone crashes the settings screen the same way past preference removals
  * have, since PreferencesBackupFragment looks these rows up by key with no null checks.
+ *
+ * Also removes "ultra_cloud" ("Settings cloud backup") from the Sync Ultra screen's
+ * "Cloud services" category (res/xml/cat_ultra.xml) — confirmed by hand via apktool
+ * that this row's click handler (Lpa/l1;->q4, via the k4 synthetic bridge) does nothing
+ * but launch PreferencesActivity with mode=@integer/BACKUP, i.e. it's just a shortcut to
+ * the same Backup screen already reachable from the main settings menu. With the Ultra
+ * cloud section gone from that screen, this row is a redundant, misleadingly-named
+ * duplicate entry pointing at a screen that's now purely local. Confirmed this is the
+ * only reference to "ultra_cloud" anywhere in the app, so no bytecode change is needed
+ * for this part.
  */
 val removeUltraCloudBackupResourcesPatch = resourcePatch(
     name = "Remove Ultra cloud backup (resources)",
     description = "Removes the redundant, Firebase-backend-dependent \"Cloud backup and " +
-        "restore\" section from Sync for Reddit's settings.",
+        "restore\" section, and the now-misleading \"Settings cloud backup\" shortcut to " +
+        "it, from Sync for Reddit's settings.",
 ) {
     compatibleWith("com.laurencedawson.reddit_sync"("v23.06.30-13:39"))
 
@@ -51,6 +62,24 @@ val removeUltraCloudBackupResourcesPatch = resourcePatch(
 
             val div = divider ?: error("Could not find \"ultra_backup_divider\" in cat_backup.xml.")
             div.parentNode?.removeChild(div)
+        }
+
+        document("res/xml/cat_ultra.xml").use { document ->
+            val entries = document.documentElement.getElementsByTagName("*")
+            var ultraCloud: Element? = null
+
+            for (i in 0 until entries.length) {
+                val element = entries.item(i) as? Element ?: continue
+                val key = element.attributes?.let { attrs ->
+                    (0 until attrs.length).map { attrs.item(it) }
+                        .firstOrNull { (it.localName ?: it.nodeName.substringAfterLast(':')) == "key" }
+                        ?.nodeValue
+                }
+                if (key == "ultra_cloud") { ultraCloud = element; break }
+            }
+
+            val entry = ultraCloud ?: error("Could not find \"ultra_cloud\" in cat_ultra.xml.")
+            entry.parentNode?.removeChild(entry)
         }
     }
 }

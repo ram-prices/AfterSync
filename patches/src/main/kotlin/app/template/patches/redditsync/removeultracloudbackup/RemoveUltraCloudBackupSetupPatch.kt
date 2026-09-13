@@ -30,7 +30,8 @@ import com.android.tools.smali.dexlib2.iface.reference.StringReference
 val removeUltraCloudBackupSetupPatch = bytecodePatch(
     name = "Remove Ultra cloud backup",
     description = "Removes the redundant, Firebase-backend-dependent \"Cloud backup and " +
-        "restore\" section from Sync for Reddit's settings.",
+        "restore\" section, and the now-misleading \"Settings cloud backup\" shortcut to " +
+        "it, from Sync for Reddit's settings.",
     default = true,
 ) {
     dependsOn(removeUltraCloudBackupResourcesPatch)
