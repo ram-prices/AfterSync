@@ -1,3 +1,9 @@
+## [1.11.2](https://github.com/ram-prices/AfterSync/compare/v1.11.1...v1.11.2) (2026-09-13)
+
+### 🐛 Bug Fixes
+
+* abandon the Material 3 Expressive settings restyle ([fda0ea4](https://github.com/ram-prices/AfterSync/commit/fda0ea432ae0318b623543098523d5d6f1695057))
+
 ## [1.11.1](https://github.com/ram-prices/AfterSync/compare/v1.11.0...v1.11.1) (2026-09-13)
 
 ### 🐛 Bug Fixes

@@ -1,6 +1,6 @@
 {
   "NOTE": "Do NOT manually edit this file. This file is automatically updated when semantic release (release.yml) runs. Manually editing this file can break your releases and break third party tools that use this file.",
-  "version": "1.11.1",
+  "version": "1.11.2",
   "patches": [
     {
       "name": "Clean up root settings menu",
@@ -34,62 +34,6 @@
     {
       "name": "Clean up root settings menu (fix crash)",
       "description": "Removes the dead \"Developer options\" visibility-check code left behind after removing it from Sync for Reddit's settings menu.",
-      "default": true,
-      "category": null,
-      "dependencies": [
-        "ResourcePatch"
-      ],
-      "compatiblePackages": [
-        {
-          "packageName": "com.laurencedawson.reddit_sync",
-          "name": null,
-          "description": null,
-          "apkFileType": null,
-          "appIconColor": null,
-          "signatures": null,
-          "targets": [
-            {
-              "version": "v23.06.30-13:39",
-              "versionCodes": null,
-              "isExperimental": false,
-              "minSdk": null,
-              "description": null
-            }
-          ]
-        }
-      ],
-      "options": []
-    },
-    {
-      "name": "Expressive Settings icon containers",
-      "description": "Gives Sync for Reddit's settings-row icons a rounded, tonal container background, matching a Material 3 Expressive-inspired restyle.",
-      "default": true,
-      "category": null,
-      "dependencies": [],
-      "compatiblePackages": [
-        {
-          "packageName": "com.laurencedawson.reddit_sync",
-          "name": null,
-          "description": null,
-          "apkFileType": null,
-          "appIconColor": null,
-          "signatures": null,
-          "targets": [
-            {
-              "version": "v23.06.30-13:39",
-              "versionCodes": null,
-              "isExperimental": false,
-              "minSdk": null,
-              "description": null
-            }
-          ]
-        }
-      ],
-      "options": []
-    },
-    {
-      "name": "Expressive Settings row cards",
-      "description": "Gives every settings row its own rounded, inset card background, matching a Material 3 Expressive-inspired restyle.",
       "default": true,
       "category": null,
       "dependencies": [
