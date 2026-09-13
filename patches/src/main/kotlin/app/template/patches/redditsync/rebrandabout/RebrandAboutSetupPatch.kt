@@ -2,8 +2,10 @@ package app.template.patches.redditsync.rebrandabout
 
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.patch.bytecodePatch
+import app.template.patches.redditsync.rebrandabout.fingerprints.aboutListenerFingerprint
 import app.template.patches.redditsync.rebrandabout.fingerprints.backersListenerFingerprint
 import app.template.patches.redditsync.rebrandabout.fingerprints.creditDevListenerFingerprint
+import app.template.patches.redditsync.rebrandabout.fingerprints.licensesListenerFingerprint
 import app.template.patches.redditsync.rebrandabout.fingerprints.preferencesOtherFragmentFingerprint
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
@@ -27,23 +29,37 @@ import com.android.tools.smali.dexlib2.iface.reference.StringReference
  * 3. Replaces the "about_preference" title computation (a StringBuilder concatenating
  *    "Sync for Reddit " + capitalize("free")) with a single "AfterSync" constant.
  *
+ * 4. Replaces the "about_preference" summary (a hardcoded "v23.06.30-13:39 (23033)" —
+ *    the ORIGINAL app's version) with a static AfterSync-patch version label, since
+ *    that original-version text now lives on its own new row instead (see
+ *    rebrandAboutResourcesPatch.kt). This label is a snapshot, not something computed
+ *    live: this project's release version is decided by the CI release pipeline AFTER
+ *    this code is written and committed, so whatever version string is hardcoded here
+ *    will already be one version behind by the time it ships as that exact version.
+ *    Getting this perfectly live would need the release pipeline restructured to inject
+ *    the next version into source before this patch compiles — out of scope here.
+ *
  * "credit_dev" and "backers" are NOT touched here — their XML entries are repurposed
  * (not deleted) by the resource patch, so their existing findPreference+listener wiring
  * in C3() stays intact and doesn't need editing. Only their listener bodies change:
  *
- * 4. Lpa/w0$f (credit_dev's listener) opens "/u/ljdawson" via Sync's general
+ * 5. Lpa/w0$f (credit_dev's listener) opens "/u/ljdawson" via Sync's general
  *    link-opening helper (Ly7/b;->b) — the URL string is swapped for the Morphe GitHub
  *    org, a single const-string replacement.
- * 5. Lpa/w0$a (backers' listener) opens a Patreon-backers dialog — replaced with a
- *    no-op (matching this project's proven "prepend early return, leave dead code
- *    after it" pattern) since the repurposed "AfterSync patch" row isn't meant to be
- *    clickable.
+ * 6. Lpa/w0$b (about_preference's listener) opens an old dev release-notes Reddit
+ *    thread — swapped for this repo's GitHub releases page.
+ * 7. Lpa/w0$c (licenses_preference's listener) opened a dead/staging-looking domain
+ *    that was never an actual license list — swapped for this repo's own LICENSE file.
+ * 8. Lpa/w0$a (backers' listener) opened a Patreon-backers dialog — replaced with
+ *    real link-opening logic (same Ly7/b;->b helper) pointing at this repo's GitHub
+ *    page, mirroring credit_dev's listener shape.
  */
 val rebrandAboutSetupPatch = bytecodePatch(
     name = "Rebrand About screen",
     description = "Renames \"Everything else\" to \"About\", removes \"Help and support\"" +
-        "/\"Rate app!\"/the original Credits entries, and repurposes two Credits rows " +
-        "for Morphe and Claude credits in Sync for Reddit.",
+        "/\"Rate app!\"/the original Credits entries, adds a row for the original app's " +
+        "version, and repurposes two Credits rows and their links for Morphe and this " +
+        "patch repo's GitHub page in Sync for Reddit.",
     default = true,
 ) {
     dependsOn(rebrandAboutResourcesPatch)
@@ -110,7 +126,26 @@ val rebrandAboutSetupPatch = bytecodePatch(
         repeat(10) { implementation.removeInstruction(titleBlockStart) }
         method.addInstructions(titleBlockStart, "const-string v0, \"AfterSync\"")
 
-        // 4. credit_dev's listener: swap the linked URL.
+        // 4. Replace the about_preference summary (was the original app's version).
+        fun replaceString(literal: String, replacement: String) {
+            val index = implementation.instructions.indexOfFirst { instruction ->
+                instruction.opcode == Opcode.CONST_STRING &&
+                    ((instruction as? ReferenceInstruction)?.reference as? StringReference)
+                        ?.string == literal
+            }
+            if (index == -1) {
+                error(
+                    "Could not find the \"$literal\" string in PreferencesOtherFragment. " +
+                        "This build's method structure may differ from what was inspected " +
+                        "— re-check with apktool.",
+                )
+            }
+            implementation.removeInstruction(index)
+            method.addInstructions(index, "const-string v0, \"$replacement\"")
+        }
+        replaceString("v23.06.30-13:39 (23033)", "AfterSync v1.6.0 — tap for release notes")
+
+        // 5. credit_dev's listener: swap the linked URL.
         val creditDevMethod = creditDevListenerFingerprint.method
         val creditDevImpl = creditDevMethod.implementation!!
         val urlIndex = creditDevImpl.instructions.indexOfFirst { instruction ->
@@ -124,10 +159,49 @@ val rebrandAboutSetupPatch = bytecodePatch(
         creditDevImpl.removeInstruction(urlIndex)
         creditDevMethod.addInstructions(urlIndex, "const-string v0, \"https://github.com/morpheapp\"")
 
-        // 5. backers' listener: neuter to a no-op.
+        // 6. about_preference's listener: swap the linked URL.
+        val aboutMethod = aboutListenerFingerprint.method
+        val aboutImpl = aboutMethod.implementation!!
+        val releaseNotesIndex = aboutImpl.instructions.indexOfFirst { instruction ->
+            instruction.opcode == Opcode.CONST_STRING &&
+                ((instruction as? ReferenceInstruction)?.reference as? StringReference)
+                    ?.string == "/r/redditsync/comments/11529s5"
+        }
+        if (releaseNotesIndex == -1) {
+            error("Could not find the release-notes URL in about_preference's listener.")
+        }
+        aboutImpl.removeInstruction(releaseNotesIndex)
+        aboutMethod.addInstructions(
+            releaseNotesIndex,
+            "const-string v0, \"https://github.com/ram-prices/sync-patches/releases\"",
+        )
+
+        // 7. licenses_preference's listener: swap the linked URL.
+        val licensesMethod = licensesListenerFingerprint.method
+        val licensesImpl = licensesMethod.implementation!!
+        val licensesUrlIndex = licensesImpl.instructions.indexOfFirst { instruction ->
+            instruction.opcode == Opcode.CONST_STRING &&
+                ((instruction as? ReferenceInstruction)?.reference as? StringReference)
+                    ?.string == "https://todo.syncforreddit.com/licenses.html"
+        }
+        if (licensesUrlIndex == -1) {
+            error("Could not find the licenses URL in licenses_preference's listener.")
+        }
+        licensesImpl.removeInstruction(licensesUrlIndex)
+        licensesMethod.addInstructions(
+            licensesUrlIndex,
+            "const-string v0, \"https://github.com/ram-prices/sync-patches/blob/main/LICENSE\"",
+        )
+
+        // 8. backers' listener: open this repo's GitHub page instead of a Patreon dialog.
         backersListenerFingerprint.method.addInstructions(
             0,
             """
+                iget-object p1, p0, Lpa/w0${'$'}a;->a:Lpa/w0;
+                invoke-virtual {p1}, Landroidx/fragment/app/Fragment;->B0()Landroidx/fragment/app/FragmentActivity;
+                move-result-object p1
+                const-string v0, "https://github.com/ram-prices/sync-patches"
+                invoke-static {p1, v0}, Ly7/b;->b(Landroid/content/Context;Ljava/lang/String;)Z
                 const/4 p1, 0x1
                 return p1
             """,
