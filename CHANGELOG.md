@@ -1,3 +1,16 @@
+## [1.1.0](https://github.com/ram-prices/sync-patches/compare/v1.0.1...v1.1.0) (2026-09-13)
+
+### 🐛 Bug Fixes
+
+* access instructions via method.implementation ([1a5e23b](https://github.com/ram-prices/sync-patches/commit/1a5e23ba1d2f4537e09530cc468ced85a6966aec))
+* correct import path for the fingerprint DSL function ([82c6f5b](https://github.com/ram-prices/sync-patches/commit/82c6f5b92b90a3f534eae6b8811a859a8791acbb))
+* gesture pref line removal ([ab9075f](https://github.com/ram-prices/sync-patches/commit/ab9075f62d7127807aabeb3cc41abe2c16e82839))
+
+### ✨ New Features
+
+* fully remove Gestures preferences and their crash-prone setup code ([e20b5a5](https://github.com/ram-prices/sync-patches/commit/e20b5a57d70d3e70af3368a60c26071fc5a85241))
+* fully remove Gestures preferences and their crash-prone setup code ([e865775](https://github.com/ram-prices/sync-patches/commit/e8657753febbbb42ef6cd1b4be16ed9775867f86))
+
 ## [1.0.1](https://github.com/ram-prices/sync-patches/compare/v1.0.0...v1.0.1) (2026-09-13)
 
 ### 🐛 Bug Fixes

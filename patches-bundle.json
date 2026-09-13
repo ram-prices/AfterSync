@@ -1,7 +1,7 @@
 {
-  "created_at": "2026-09-13T04:26:44",
-  "description": "## [1.0.1](https://github.com/ram-prices/sync-patches/compare/v1.0.0...v1.0.1) (2026-09-13)\n\n### 🐛 Bug Fixes\n\n* hide Gestures category via isPreferenceVisible instead of deleting it (fixes crash) ([f1a1beb](https://github.com/ram-prices/sync-patches/commit/f1a1beb09c0a9136cb047c5790e9205b608cde1e))\n* hide Gestures category via isPreferenceVisible instead of deleting it (fixes crash) ([118b17f](https://github.com/ram-prices/sync-patches/commit/118b17fee6d4359c75e166b81d53cb9162483b25))",
-  "download_url": "https://github.com/ram-prices/sync-patches/releases/download/v1.0.1/patches-1.0.1.mpp",
+  "created_at": "2026-09-13T14:31:26",
+  "description": "## [1.1.0](https://github.com/ram-prices/sync-patches/compare/v1.0.1...v1.1.0) (2026-09-13)\n\n### 🐛 Bug Fixes\n\n* access instructions via method.implementation ([1a5e23b](https://github.com/ram-prices/sync-patches/commit/1a5e23ba1d2f4537e09530cc468ced85a6966aec))\n* correct import path for the fingerprint DSL function ([82c6f5b](https://github.com/ram-prices/sync-patches/commit/82c6f5b92b90a3f534eae6b8811a859a8791acbb))\n* gesture pref line removal ([ab9075f](https://github.com/ram-prices/sync-patches/commit/ab9075f62d7127807aabeb3cc41abe2c16e82839))\n\n### ✨ New Features\n\n* fully remove Gestures preferences and their crash-prone setup code ([e20b5a5](https://github.com/ram-prices/sync-patches/commit/e20b5a57d70d3e70af3368a60c26071fc5a85241))\n* fully remove Gestures preferences and their crash-prone setup code ([e865775](https://github.com/ram-prices/sync-patches/commit/e8657753febbbb42ef6cd1b4be16ed9775867f86))",
+  "download_url": "https://github.com/ram-prices/sync-patches/releases/download/v1.1.0/patches-1.1.0.mpp",
   "signature_download_url": "",
-  "version": "1.0.1"
+  "version": "1.1.0"
 }
