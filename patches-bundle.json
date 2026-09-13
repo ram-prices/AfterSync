@@ -1,7 +1,7 @@
 {
-  "created_at": "2026-09-13T20:14:02",
-  "description": "## [1.7.2](https://github.com/ram-prices/AfterSync/compare/v1.7.1...v1.7.2) (2026-09-13)\n\n### 🐛 Bug Fixes\n\n* revert root-menu cleanup, it crashes with a VerifyError ([708f1a5](https://github.com/ram-prices/AfterSync/commit/708f1a5a1b22a4d955e3dab67101fe59b19bb547))",
-  "download_url": "https://github.com/ram-prices/AfterSync/releases/download/v1.7.2/patches-1.7.2.mpp",
+  "created_at": "2026-09-13T20:52:34",
+  "description": "## [1.7.3](https://github.com/ram-prices/AfterSync/compare/v1.7.2...v1.7.3) (2026-09-13)\n\n### 🐛 Bug Fixes\n\n* redo Developer-options removal without breaking shared register ([f1b5471](https://github.com/ram-prices/AfterSync/commit/f1b5471378050cc4a1e49291a687ab32a61a2f5a))",
+  "download_url": "https://github.com/ram-prices/AfterSync/releases/download/v1.7.3/patches-1.7.3.mpp",
   "signature_download_url": "",
-  "version": "1.7.2"
+  "version": "1.7.3"
 }

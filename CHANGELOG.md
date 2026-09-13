@@ -1,3 +1,9 @@
+## [1.7.3](https://github.com/ram-prices/AfterSync/compare/v1.7.2...v1.7.3) (2026-09-13)
+
+### 🐛 Bug Fixes
+
+* redo Developer-options removal without breaking shared register ([f1b5471](https://github.com/ram-prices/AfterSync/commit/f1b5471378050cc4a1e49291a687ab32a61a2f5a))
+
 ## [1.7.2](https://github.com/ram-prices/AfterSync/compare/v1.7.1...v1.7.2) (2026-09-13)
 
 ### 🐛 Bug Fixes
