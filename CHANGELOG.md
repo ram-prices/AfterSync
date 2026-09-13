@@ -1,3 +1,9 @@
+## [1.12.0](https://github.com/ram-prices/AfterSync/compare/v1.11.2...v1.12.0) (2026-09-13)
+
+### ✨ New Features
+
+* relocate Ultra highlighting/view-tweak perks to Comments, remove Sync Ultra screen ([275aad2](https://github.com/ram-prices/AfterSync/commit/275aad2dfc9fc54a68d3190670e8a70fe3455a82))
+
 ## [1.11.2](https://github.com/ram-prices/AfterSync/compare/v1.11.1...v1.11.2) (2026-09-13)
 
 ### 🐛 Bug Fixes

@@ -1,7 +1,7 @@
 {
-  "created_at": "2026-09-13T22:44:28",
-  "description": "## [1.11.2](https://github.com/ram-prices/AfterSync/compare/v1.11.1...v1.11.2) (2026-09-13)\n\n### 🐛 Bug Fixes\n\n* abandon the Material 3 Expressive settings restyle ([fda0ea4](https://github.com/ram-prices/AfterSync/commit/fda0ea432ae0318b623543098523d5d6f1695057))",
-  "download_url": "https://github.com/ram-prices/AfterSync/releases/download/v1.11.2/patches-1.11.2.mpp",
+  "created_at": "2026-09-13T23:40:47",
+  "description": "## [1.12.0](https://github.com/ram-prices/AfterSync/compare/v1.11.2...v1.12.0) (2026-09-13)\n\n### ✨ New Features\n\n* relocate Ultra highlighting/view-tweak perks to Comments, remove Sync Ultra screen ([275aad2](https://github.com/ram-prices/AfterSync/commit/275aad2dfc9fc54a68d3190670e8a70fe3455a82))",
+  "download_url": "https://github.com/ram-prices/AfterSync/releases/download/v1.12.0/patches-1.12.0.mpp",
   "signature_download_url": "",
-  "version": "1.11.2"
+  "version": "1.12.0"
 }
