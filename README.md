@@ -13,9 +13,9 @@ Click here to add these patches to Morphe: https://morphe.software/add-source?gi
 ## 🩹 Patches list
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.7.3](https://github.com/ram-prices/AfterSync/releases/tag/v1.7.3)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;15 patches total
+> **[v1.8.0](https://github.com/ram-prices/AfterSync/releases/tag/v1.8.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;19 patches total
 <details open>
-<summary>📦 com.laurencedawson.reddit_sync&nbsp;&nbsp;•&nbsp;&nbsp;15 patches</summary>
+<summary>📦 com.laurencedawson.reddit_sync&nbsp;&nbsp;•&nbsp;&nbsp;19 patches</summary>
 <br>
 
 **🎯 Supported versions:**
@@ -36,6 +36,10 @@ Click here to add these patches to Morphe: https://morphe.software/add-source?gi
 | [Remove Privacy section](#remove-privacy-section) | Removes the "Privacy" entry (privacy policy link, Crashlytics toggle, "Delete Firebase installation ID", "Revoke GDPR consent for ads") from Sync for Reddit's settings, now that telemetry and ads have already been removed. |  |
 | [Remove Restore purchases](#remove-restore-purchases) | Removes the "Restore purchases" entry from Sync for Reddit's settings, plus the Sync Ultra screen's "Restore subscription" and dev-only "Reset subscription locally" buttons, now that Ultra and ad removal are unlocked unconditionally and don't depend on this state. |  |
 | [Remove Restore purchases (resources)](#remove-restore-purchases-resources) | Removes the "Restore purchases" entry from Sync for Reddit's settings, plus the Sync Ultra screen's "Restore subscription" and dev-only "Reset subscription locally" buttons, now that Ultra and ad removal are unlocked unconditionally and don't depend on this state. |  |
+| [Remove Ultra cloud backup](#remove-ultra-cloud-backup) | Removes the redundant, Firebase-backend-dependent "Cloud backup and restore" section from Sync for Reddit's settings. |  |
+| [Remove Ultra cloud backup (resources)](#remove-ultra-cloud-backup-resources) | Removes the redundant, Firebase-backend-dependent "Cloud backup and restore" section from Sync for Reddit's settings. |  |
+| [Remove Website previews](#remove-website-previews) | Removes the "Website previews" toggle from Sync for Reddit's Sync Ultra screen and disables the underlying feature. |  |
+| [Remove Website previews (resources)](#remove-website-previews-resources) | Removes the "Website previews" toggle from Sync for Reddit's Sync Ultra screen and disables the underlying feature. |  |
 | [Remove ads](#remove-ads) | Permanently disables ads in Sync for Reddit. |  |
 | [Remove telemetry](#remove-telemetry) | Disables Crashlytics crash reporting, Firebase Analytics collection, and a device/account registration call to Google's servers in Sync for Reddit. |  |
 | [Remove telemetry (resources)](#remove-telemetry-resources) | Disables Firebase Analytics data collection in Sync for Reddit. |  |

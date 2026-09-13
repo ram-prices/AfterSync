@@ -1,3 +1,9 @@
+## [1.8.0](https://github.com/ram-prices/AfterSync/compare/v1.7.3...v1.8.0) (2026-09-13)
+
+### ✨ New Features
+
+* remove Ultra cloud backup and Website previews ([02fdf84](https://github.com/ram-prices/AfterSync/commit/02fdf8424ac645e9c090a3470c327848900bc538))
+
 ## [1.7.3](https://github.com/ram-prices/AfterSync/compare/v1.7.2...v1.7.3) (2026-09-13)
 
 ### 🐛 Bug Fixes

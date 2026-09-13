@@ -1,7 +1,7 @@
 {
-  "created_at": "2026-09-13T20:52:34",
-  "description": "## [1.7.3](https://github.com/ram-prices/AfterSync/compare/v1.7.2...v1.7.3) (2026-09-13)\n\n### 🐛 Bug Fixes\n\n* redo Developer-options removal without breaking shared register ([f1b5471](https://github.com/ram-prices/AfterSync/commit/f1b5471378050cc4a1e49291a687ab32a61a2f5a))",
-  "download_url": "https://github.com/ram-prices/AfterSync/releases/download/v1.7.3/patches-1.7.3.mpp",
+  "created_at": "2026-09-13T21:20:44",
+  "description": "## [1.8.0](https://github.com/ram-prices/AfterSync/compare/v1.7.3...v1.8.0) (2026-09-13)\n\n### ✨ New Features\n\n* remove Ultra cloud backup and Website previews ([02fdf84](https://github.com/ram-prices/AfterSync/commit/02fdf8424ac645e9c090a3470c327848900bc538))",
+  "download_url": "https://github.com/ram-prices/AfterSync/releases/download/v1.8.0/patches-1.8.0.mpp",
   "signature_download_url": "",
-  "version": "1.7.3"
+  "version": "1.8.0"
 }
