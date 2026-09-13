@@ -52,8 +52,9 @@ val removeSwipeSensSetupPatch = bytecodePatch(
 
     execute {
         val method = preferencesGeneralFragmentFingerprint.method
+        val implementation = method.implementation!!
 
-        val swipeSensStringIndex = method.instructions.indexOfFirst { instruction ->
+        val swipeSensStringIndex = implementation.instructions.indexOfFirst { instruction ->
             instruction.opcode == Opcode.CONST_STRING &&
                 ((instruction as? ReferenceInstruction)?.reference as? StringReference)
                     ?.string == "swipe_sens"
@@ -72,9 +73,9 @@ val removeSwipeSensSetupPatch = bytecodePatch(
         // (removing at a fixed index repeatedly, since the list shifts down
         // after each removal — this avoids depending on a possibly
         // version-specific bulk-remove helper).
-        val removeCount = method.instructions.size - 1 - swipeSensStringIndex
+        val removeCount = implementation.instructions.size - 1 - swipeSensStringIndex
         repeat(removeCount) {
-            method.removeInstruction(swipeSensStringIndex)
+            implementation.removeInstruction(swipeSensStringIndex)
         }
     }
 }
