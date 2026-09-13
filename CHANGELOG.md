@@ -1,3 +1,9 @@
+## [1.7.2](https://github.com/ram-prices/AfterSync/compare/v1.7.1...v1.7.2) (2026-09-13)
+
+### 🐛 Bug Fixes
+
+* revert root-menu cleanup, it crashes with a VerifyError ([708f1a5](https://github.com/ram-prices/AfterSync/commit/708f1a5a1b22a4d955e3dab67101fe59b19bb547))
+
 ## [1.7.1](https://github.com/ram-prices/AfterSync/compare/v1.7.0...v1.7.1) (2026-09-13)
 
 ### 🐛 Bug Fixes

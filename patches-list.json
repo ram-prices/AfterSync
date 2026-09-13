@@ -1,65 +1,7 @@
 {
   "NOTE": "Do NOT manually edit this file. This file is automatically updated when semantic release (release.yml) runs. Manually editing this file can break your releases and break third party tools that use this file.",
-  "version": "1.7.1",
+  "version": "1.7.2",
   "patches": [
-    {
-      "name": "Clean up root settings menu",
-      "description": "Removes the \"New\" category (\"Developer options\", \"Legacy settings\", and its promotional banner) and moves \"Run setup\" into the \"Other\" category in Sync for Reddit's settings.",
-      "default": true,
-      "category": null,
-      "dependencies": [
-        "ResourcePatch"
-      ],
-      "compatiblePackages": [
-        {
-          "packageName": "com.laurencedawson.reddit_sync",
-          "name": null,
-          "description": null,
-          "apkFileType": null,
-          "appIconColor": null,
-          "signatures": null,
-          "targets": [
-            {
-              "version": "v23.06.30-13:39",
-              "versionCodes": null,
-              "isExperimental": false,
-              "minSdk": null,
-              "description": null
-            }
-          ]
-        }
-      ],
-      "options": []
-    },
-    {
-      "name": "Clean up root settings menu (fix crash)",
-      "description": "Removes the dead \"Developer options\" visibility-check code left behind after removing it from Sync for Reddit's settings menu.",
-      "default": true,
-      "category": null,
-      "dependencies": [
-        "ResourcePatch"
-      ],
-      "compatiblePackages": [
-        {
-          "packageName": "com.laurencedawson.reddit_sync",
-          "name": null,
-          "description": null,
-          "apkFileType": null,
-          "appIconColor": null,
-          "signatures": null,
-          "targets": [
-            {
-              "version": "v23.06.30-13:39",
-              "versionCodes": null,
-              "isExperimental": false,
-              "minSdk": null,
-              "description": null
-            }
-          ]
-        }
-      ],
-      "options": []
-    },
     {
       "name": "Fix preview.redd.it comment/post images",
       "description": "Fixes comment and post images hosted on preview.redd.it (Reddit's current inline-image hosting) showing as a raw link instead of embedding properly in Sync for Reddit.",
