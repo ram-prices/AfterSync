@@ -1,3 +1,9 @@
+## [1.3.0](https://github.com/ram-prices/sync-patches/compare/v1.2.0...v1.3.0) (2026-09-13)
+
+### ✨ New Features
+
+* rename patch source to AfterSync, remove Privacy and Restore purchases ([dbf251d](https://github.com/ram-prices/sync-patches/commit/dbf251d593f5b84bb969c2037c82df74b362dee5))
+
 ## [1.2.0](https://github.com/ram-prices/sync-patches/compare/v1.1.0...v1.2.0) (2026-09-13)
 
 ### ✨ New Features
