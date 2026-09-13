@@ -1,3 +1,9 @@
+## [1.3.1](https://github.com/ram-prices/sync-patches/compare/v1.3.0...v1.3.1) (2026-09-13)
+
+### 🐛 Bug Fixes
+
+* crash on opening Settings after removing Restore purchases ([290e9d9](https://github.com/ram-prices/sync-patches/commit/290e9d9812e38d4f1fabe4d4244883bb3ad8b192))
+
 ## [1.3.0](https://github.com/ram-prices/sync-patches/compare/v1.2.0...v1.3.0) (2026-09-13)
 
 ### ✨ New Features
