@@ -1,3 +1,13 @@
+## [1.7.0](https://github.com/ram-prices/AfterSync/compare/v1.6.0...v1.7.0) (2026-09-13)
+
+### 🐛 Bug Fixes
+
+* update repo references now that GitHub repo is renamed to AfterSync ([efd93f9](https://github.com/ram-prices/AfterSync/commit/efd93f936c42fe193c5a81bc718d0abbcf483af5))
+
+### ✨ New Features
+
+* more About/root-menu cleanup, drop New/Legacy section ([dd3db99](https://github.com/ram-prices/AfterSync/commit/dd3db9975cdcf4d8f85207c7a7b2b5747e5f1517))
+
 ## [1.6.0](https://github.com/ram-prices/sync-patches/compare/v1.5.2...v1.6.0) (2026-09-13)
 
 ### ✨ New Features

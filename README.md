@@ -13,9 +13,9 @@ Click here to add these patches to Morphe: https://morphe.software/add-source?gi
 ## 🩹 Patches list
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.6.0](https://github.com/ram-prices/AfterSync/releases/tag/v1.6.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;13 patches total
+> **[v1.7.0](https://github.com/ram-prices/AfterSync/releases/tag/v1.7.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;14 patches total
 <details open>
-<summary>📦 com.laurencedawson.reddit_sync&nbsp;&nbsp;•&nbsp;&nbsp;13 patches</summary>
+<summary>📦 com.laurencedawson.reddit_sync&nbsp;&nbsp;•&nbsp;&nbsp;14 patches</summary>
 <br>
 
 **🎯 Supported versions:**
@@ -25,10 +25,11 @@ Click here to add these patches to Morphe: https://morphe.software/add-source?gi
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
+| [Clean up root settings menu](#clean-up-root-settings-menu) | Removes the "New" category ("Developer options", "Legacy settings", and its promotional banner) and moves "Run setup" into the "Other" category in Sync for Reddit's settings. |  |
 | [Fix preview.redd.it comment/post images](#fix-preview-redd-it-comment-post-images) | Fixes comment and post images hosted on preview.redd.it (Reddit's current inline-image hosting) showing as a raw link instead of embedding properly in Sync for Reddit. |  |
 | [Move Sync Ultra setting](#move-sync-ultra-setting) | Moves the "Sync Ultra" entry in Sync for Reddit's settings from the "New" category to the top of the "Content" category. |  |
-| [Rebrand About screen](#rebrand-about-screen) | Renames "Everything else" to "About", removes "Help and support"/"Rate app!"/the original Credits entries, and repurposes two Credits rows for Morphe and Claude credits in Sync for Reddit. |  |
-| [Rebrand About screen (resources)](#rebrand-about-screen-resources) | Renames "Everything else" to "About", removes "Help and support"/"Rate app!"/the original Credits entries, and repurposes two Credits rows for Morphe and Claude credits in Sync for Reddit. |  |
+| [Rebrand About screen](#rebrand-about-screen) | Renames "Everything else" to "About", removes "Help and support"/"Rate app!"/the original Credits entries, adds a row for the original app's version, and repurposes two Credits rows and their links for Morphe and this patch repo's GitHub page in Sync for Reddit. |  |
+| [Rebrand About screen (resources)](#rebrand-about-screen-resources) | Renames "Everything else" to "About", removes "Help and support"/"Rate app!"/the original Credits entries, adds a row for the original app's version, and repurposes two Credits rows for Morphe and this patch repo's GitHub page in Sync for Reddit. |  |
 | [Remove Gestures settings](#remove-gestures-settings) | Removes the "Gestures" section (Swipe to return, Dim behind activity, Swipe to return sensitivity) from Sync for Reddit's General settings screen, including the code that would otherwise crash the settings screen once those preferences no longer exist. |  |
 | [Remove Gestures settings (resources)](#remove-gestures-settings-resources) | Removes the "Gestures" section (Swipe to return, Dim behind activity, Swipe to return sensitivity) from Sync for Reddit's General settings screen. |  |
 | [Remove Privacy section](#remove-privacy-section) | Removes the "Privacy" entry (privacy policy link, Crashlytics toggle, "Delete Firebase installation ID", "Revoke GDPR consent for ads") from Sync for Reddit's settings, now that telemetry and ads have already been removed. |  |

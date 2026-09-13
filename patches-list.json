@@ -1,7 +1,36 @@
 {
   "NOTE": "Do NOT manually edit this file. This file is automatically updated when semantic release (release.yml) runs. Manually editing this file can break your releases and break third party tools that use this file.",
-  "version": "1.6.0",
+  "version": "1.7.0",
   "patches": [
+    {
+      "name": "Clean up root settings menu",
+      "description": "Removes the \"New\" category (\"Developer options\", \"Legacy settings\", and its promotional banner) and moves \"Run setup\" into the \"Other\" category in Sync for Reddit's settings.",
+      "default": true,
+      "category": null,
+      "dependencies": [
+        "ResourcePatch"
+      ],
+      "compatiblePackages": [
+        {
+          "packageName": "com.laurencedawson.reddit_sync",
+          "name": null,
+          "description": null,
+          "apkFileType": null,
+          "appIconColor": null,
+          "signatures": null,
+          "targets": [
+            {
+              "version": "v23.06.30-13:39",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
     {
       "name": "Fix preview.redd.it comment/post images",
       "description": "Fixes comment and post images hosted on preview.redd.it (Reddit's current inline-image hosting) showing as a raw link instead of embedding properly in Sync for Reddit.",
@@ -58,7 +87,7 @@
     },
     {
       "name": "Rebrand About screen",
-      "description": "Renames \"Everything else\" to \"About\", removes \"Help and support\"/\"Rate app!\"/the original Credits entries, and repurposes two Credits rows for Morphe and Claude credits in Sync for Reddit.",
+      "description": "Renames \"Everything else\" to \"About\", removes \"Help and support\"/\"Rate app!\"/the original Credits entries, adds a row for the original app's version, and repurposes two Credits rows and their links for Morphe and this patch repo's GitHub page in Sync for Reddit.",
       "default": true,
       "category": null,
       "dependencies": [
@@ -87,7 +116,7 @@
     },
     {
       "name": "Rebrand About screen (resources)",
-      "description": "Renames \"Everything else\" to \"About\", removes \"Help and support\"/\"Rate app!\"/the original Credits entries, and repurposes two Credits rows for Morphe and Claude credits in Sync for Reddit.",
+      "description": "Renames \"Everything else\" to \"About\", removes \"Help and support\"/\"Rate app!\"/the original Credits entries, adds a row for the original app's version, and repurposes two Credits rows for Morphe and this patch repo's GitHub page in Sync for Reddit.",
       "default": true,
       "category": null,
       "dependencies": [],
