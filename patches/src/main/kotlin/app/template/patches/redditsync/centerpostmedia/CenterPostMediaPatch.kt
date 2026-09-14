@@ -72,7 +72,7 @@ val centerPostMediaPatch = bytecodePatch(
     execute {
         // 1. Add the new "is this render for a post?" field + builder-style setter to Lnc/a;.
         val optionsClass = optionsSetPostFingerprint.classDef
-        optionsClass.fields.add(
+        optionsClass.instanceFields.add(
             MutableField(
                 ImmutableField(
                     "Lnc/a;",
