@@ -8,6 +8,7 @@ import app.template.patches.redditsync.centerpostmedia.fingerprints.commentsHtml
 import app.template.patches.redditsync.centerpostmedia.fingerprints.htmlTextViewRenderFingerprint
 import app.template.patches.redditsync.centerpostmedia.fingerprints.optionsSetPostFingerprint
 import app.template.patches.redditsync.centerpostmedia.fingerprints.spannableBuilderAddSpanFingerprint
+import app.template.patches.redditsync.fixcommentimagesizing.fixCommentImageSizingPatch
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
@@ -34,6 +35,41 @@ import com.android.tools.smali.dexlib2.immutable.ImmutableMethodParameter
  * centering: once parsing is done, walk the already-built queue, find every entry whose span
  * is one of the app's media span types, and queue an additional AlignmentSpan.Standard(CENTER)
  * over that same [start, end) range.
+ *
+ * EXCEPT for Lnb/c; (EmoteImageSpan, images/GIFs — the actual case people tap): AlignmentSpan
+ * turned out to break tap detection for centered images. Confirmed by hand from
+ * Loc/b;->onTouchEvent (the shared touch handler EVERY clickable span in the app goes
+ * through): it maps a tap's raw X to a line/character offset (Layout.getOffsetForHorizontal,
+ * which IS alignment-aware), then sanity-checks that X against [0, Layout.getLineWidth(line)]
+ * — silently assuming the line's visible content starts at X=0, i.e. that it's left-aligned.
+ * AlignmentSpan.CENTER makes that assumption false: the actual content starts at
+ * Layout.getLineLeft(line), not 0. The result, confirmed on a real device: taps on the
+ * now-centered image itself land outside that assumed window and get rejected, while taps in
+ * the empty space to its LEFT fall inside the window and get clamped by
+ * getOffsetForHorizontal to the image's own character offset — so the whole clickable area is
+ * shifted left of the actual, visible image.
+ *
+ * Fixing onTouchEvent itself was considered and rejected: it declares only 8 registers
+ * (.locals 8) and every single one is already live across the span where a fix would need to
+ * read Layout.getLineLeft(...), so a real fix means fully rebuilding a method used by every
+ * clickable span in the entire app (comments, settings links, everything) — far more blast
+ * radius than this feature justifies.
+ *
+ * Instead, images are centered a completely different way that never touches line alignment
+ * at all: Lnb/c; gets a new `centerWidth` field (set via `Lnb/c;->setCenterWidth(Lnb/c;I)V`,
+ * added by fixCommentImageSizingPatch.kt, hence the dependsOn below) that makes its
+ * getSize() report a box as wide as the whole available column instead of the image's own
+ * tight-fit size, while `w4` (the existing letterbox helper, also in
+ * fixCommentImageSizingPatch.kt) draws the actual image horizontally centered WITHIN that
+ * wider box rather than anchored to its top-left corner. Since the reported box width now
+ * genuinely matches the line's real content width, Layout.getLineWidth/getLineLeft and
+ * onTouchEvent's existing (unmodified) left-aligned assumption are both simply correct again —
+ * no branch, no register, no risk added to that shared method at all. The other 5 media span
+ * types (Lnb/b;/Lnb/d;/Lnb/f;/Lnb/g;/Lnb/h;) still use the AlignmentSpan approach and would
+ * have the same tap-zone bug if centered — none of them implement Lnb/a; (the click interface)
+ * directly, but several pair with an Lmb/d; sibling span the same way images do, so this is a
+ * known gap, not a guarantee they're unaffected — just out of scope for now since none of them
+ * are what people actually tap on inline post media.
  *
  * The flag that makes this post-only is inverted from what you'd first reach for: a boolean
  * field on Lnc/a; ("Options.java", the render-options object every render builds) called
@@ -89,6 +125,7 @@ val centerPostMediaPatch = bytecodePatch(
     default = true,
 ) {
     compatibleWith("com.laurencedawson.reddit_sync"("v23.06.30-13:39"))
+    dependsOn(fixCommentImageSizingPatch)
 
     execute {
         // 1. Add the new "is this render for a comment?" field + builder-style setter to
@@ -175,9 +212,10 @@ val centerPostMediaPatch = bytecodePatch(
 
                 iget-object v4, v3, Loc/c${'$'}a;->d:Ljava/lang/Object;
 
-                instance-of v5, v4, Lnb/b;
-                if-nez v5, :is_media
                 instance-of v5, v4, Lnb/c;
+                if-nez v5, :is_image
+
+                instance-of v5, v4, Lnb/b;
                 if-nez v5, :is_media
                 instance-of v5, v4, Lnb/d;
                 if-nez v5, :is_media
@@ -198,6 +236,12 @@ val centerPostMediaPatch = bytecodePatch(
                 iget v8, v3, Loc/c${'$'}a;->c:I
 
                 invoke-virtual {p0, v5, v6, v7, v8}, Loc/c;->s(Ljava/lang/Object;III)V
+                goto :next
+
+                :is_image
+                check-cast v4, Lnb/c;
+                iget v5, p1, Lnc/a;->e:I
+                invoke-static {v4, v5}, Lnb/c;->setCenterWidth(Lnb/c;I)V
 
                 :next
                 add-int/lit8 v2, v2, 0x1

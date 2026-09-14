@@ -4,6 +4,7 @@ import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.removeInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
 import app.morphe.patcher.patch.bytecodePatch
+import app.morphe.patcher.util.proxy.mutableTypes.MutableField
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import app.template.patches.redditsync.fixcommentimagesizing.fingerprints.emoteImageSpanDrawFingerprint
 import app.template.patches.redditsync.fixcommentimagesizing.fingerprints.syncHtmlToSpannedConverterFingerprint
@@ -17,6 +18,7 @@ import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.iface.reference.StringReference
 import com.android.tools.smali.dexlib2.iface.reference.TypeReference
+import com.android.tools.smali.dexlib2.immutable.ImmutableField
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethodImplementation
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethodParameter
@@ -479,8 +481,11 @@ val fixCommentImageSizingPatch = bytecodePatch(
             )
         }
 
-        // 11 registers = 8 locals (v0-v7) + 3 params (drawable, boxWidth, boxHeight).
-        val helperImpl = ImmutableMethodImplementation(11, emptyList(), emptyList(), emptyList())
+        // 12 registers = 8 locals (v0-v7) + 4 params (drawable, boxWidth, boxHeight,
+        // centerWidth). centerWidth is 0 for every ordinary (non-post) image — see the
+        // "Center media in posts" tap-zone fix below for why this 4th param exists and
+        // where a nonzero value comes from.
+        val helperImpl = ImmutableMethodImplementation(12, emptyList(), emptyList(), emptyList())
         val helperDefinition = ImmutableMethod(
             "Lnb/c;",
             "w4",
@@ -488,6 +493,7 @@ val fixCommentImageSizingPatch = bytecodePatch(
                 ImmutableMethodParameter("Landroid/graphics/drawable/Drawable;", emptySet(), "drawable"),
                 ImmutableMethodParameter("I", emptySet(), "boxWidth"),
                 ImmutableMethodParameter("I", emptySet(), "boxHeight"),
+                ImmutableMethodParameter("I", emptySet(), "centerWidth"),
             ),
             "V",
             AccessFlags.PRIVATE.value or AccessFlags.STATIC.value,
@@ -527,8 +533,12 @@ val fixCommentImageSizingPatch = bytecodePatch(
                 float-to-int v4, v4
 
                 const/4 v5, 0x0
-                const/4 v6, 0x0
+                if-lez p3, :bounds
+                sub-int v5, p3, v3
+                div-int/lit8 v5, v5, 0x2
 
+                :bounds
+                const/4 v6, 0x0
                 add-int v7, v5, v3
                 add-int v3, v6, v4
 
@@ -537,17 +547,132 @@ val fixCommentImageSizingPatch = bytecodePatch(
 
                 :fallback
                 const/4 v0, 0x0
-                invoke-virtual {p0, v0, v0, p1, p2}, Landroid/graphics/drawable/Drawable;->setBounds(IIII)V
+                const/4 v2, 0x0
+                if-lez p3, :fallback_bounds
+                sub-int v2, p3, p1
+                div-int/lit8 v2, v2, 0x2
+
+                :fallback_bounds
+                add-int v3, v2, p1
+                invoke-virtual {p0, v2, v0, v3, p2}, Landroid/graphics/drawable/Drawable;->setBounds(IIII)V
                 return-void
             """,
         )
         emoteImageSpanClass.directMethods.add(aspectFitBounds)
 
+        // New field + setter used by "Center media in posts" to widen this span's
+        // reported layout box (via getSize() below) without changing how big the image
+        // itself is drawn — see that patch for why AlignmentSpan-based centering broke
+        // tap detection, and CenterPostMediaPatch.kt's dependsOn(fixCommentImageSizingPatch)
+        // for why it needs this class's methods to exist first.
+        emoteImageSpanClass.instanceFields.add(
+            MutableField(
+                ImmutableField(
+                    "Lnb/c;",
+                    "centerWidth",
+                    "I",
+                    AccessFlags.PUBLIC.value,
+                    null,
+                    emptySet(),
+                    null,
+                ),
+            ),
+        )
+
+        val setCenterWidthDefinition = ImmutableMethod(
+            "Lnb/c;",
+            "setCenterWidth",
+            listOf(
+                ImmutableMethodParameter("Lnb/c;", emptySet(), "span"),
+                ImmutableMethodParameter("I", emptySet(), "width"),
+            ),
+            "V",
+            AccessFlags.PUBLIC.value or AccessFlags.STATIC.value,
+            emptySet(),
+            emptySet(),
+            ImmutableMethodImplementation(2, emptyList(), emptyList(), emptyList()),
+        )
+        val setCenterWidth = MutableMethod(setCenterWidthDefinition)
+        setCenterWidth.addInstructions(
+            """
+                iput p1, p0, Lnb/c;->centerWidth:I
+                return-void
+            """,
+        )
+        emoteImageSpanClass.directMethods.add(setCenterWidth)
+
+        // Rebuilt from scratch (like item 4's Giphy fallback below) rather than patched in
+        // place: the original declares .locals 0, using every one of its 6 param registers
+        // already, so a new branch needs a fresh register count — 7 (6 params + 1 local)
+        // instead of 6. A plain public instance method overriding ReplacementSpan.getSize()
+        // must stay in virtualMethods, not directMethods, to still be found by virtual
+        // dispatch — see the direct/virtual dexlib2 pitfall documented elsewhere in this
+        // project.
+        val oldGetSize = emoteImageSpanClass.virtualMethods
+            .firstOrNull { it.name == "getSize" }
+            ?: error(
+                "Could not find EmoteImageSpan's getSize(...) override (Lnb/c;->getSize). " +
+                    "This build's method structure may differ from what was inspected — " +
+                    "re-check with apktool.",
+            )
+        emoteImageSpanClass.virtualMethods.remove(oldGetSize)
+
+        val getSizeDefinition = ImmutableMethod(
+            "Lnb/c;",
+            "getSize",
+            listOf(
+                ImmutableMethodParameter("Landroid/graphics/Paint;", emptySet(), "paint"),
+                ImmutableMethodParameter("Ljava/lang/CharSequence;", emptySet(), "text"),
+                ImmutableMethodParameter("I", emptySet(), "start"),
+                ImmutableMethodParameter("I", emptySet(), "end"),
+                ImmutableMethodParameter("Landroid/graphics/Paint\$FontMetricsInt;", emptySet(), "fm"),
+            ),
+            "I",
+            AccessFlags.PUBLIC.value,
+            emptySet(),
+            emptySet(),
+            ImmutableMethodImplementation(7, emptyList(), emptyList(), emptyList()),
+        )
+        val getSize = MutableMethod(getSizeDefinition)
+        getSize.addInstructions(
+            """
+                if-eqz p5, :cond_0
+
+                iget p1, p0, Lnb/c;->t:I
+                neg-int p1, p1
+                iput p1, p5, Landroid/graphics/Paint${'$'}FontMetricsInt;->ascent:I
+
+                const/4 p2, 0x0
+                iput p2, p5, Landroid/graphics/Paint${'$'}FontMetricsInt;->descent:I
+                iput p1, p5, Landroid/graphics/Paint${'$'}FontMetricsInt;->top:I
+                iput p2, p5, Landroid/graphics/Paint${'$'}FontMetricsInt;->bottom:I
+
+                :cond_0
+                iget v0, p0, Lnb/c;->centerWidth:I
+                if-lez v0, :use_tight
+                return v0
+
+                :use_tight
+                iget p1, p0, Lnb/c;->s:I
+                return p1
+            """,
+        )
+        emoteImageSpanClass.virtualMethods.add(getSize)
+
         // Replace the 2nd (static bitmap) and 3rd (animated GIF) setBounds(...) calls —
         // in descending index order so replacing one doesn't shift the other's index.
-        // Both call sites use the identical register pattern: {drawable, 0, 0, s, t}.
+        // Both call sites use the identical register pattern: {drawable, 0, 0, s, t}. p6 is
+        // unused anywhere else in this method (confirmed by hand — draw() never reads its
+        // own "top" parameter), so it's safe scratch for fetching centerWidth here.
         listOf(setBoundsIndices[2], setBoundsIndices[1]).forEach { index ->
-            drawMethod.replaceInstruction(index, "invoke-static {p2, p4, p5}, Lnb/c;->w4(Landroid/graphics/drawable/Drawable;II)V")
+            drawMethod.removeInstructions(index, 1)
+            drawMethod.addInstructions(
+                index,
+                """
+                    iget p6, p0, Lnb/c;->centerWidth:I
+                    invoke-static {p2, p4, p5, p6}, Lnb/c;->w4(Landroid/graphics/drawable/Drawable;III)V
+                """,
+            )
         }
 
         // 2. Bump the fixed emote-image box from 42dp to 120dp.
