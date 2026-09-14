@@ -2,7 +2,6 @@ package app.template.patches.redditsync.removeultracloudbackup
 
 import app.morphe.patcher.patch.bytecodePatch
 import app.template.patches.redditsync.removeultracloudbackup.fingerprints.preferencesBackupFragmentFingerprint
-import app.template.patches.redditsync.removerestorepurchases.fingerprints.preferencesUltraFragmentFingerprint
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.reference.StringReference
@@ -25,14 +24,12 @@ import com.android.tools.smali.dexlib2.iface.reference.StringReference
  * there's no code after it that could depend on any register it sets (unlike the
  * Developer-options removal, which needed care for exactly that reason).
  *
- * Also fixes a second crash from the same feature removal, found via a real device
- * crash log: PreferencesUltraFragment's setup method (Lpa/l1;->s4, already patched
- * elsewhere in this project) ALSO looks up "ultra_cloud" ("Settings cloud backup") by
- * key to wire its click listener, with no null check — a block this project's own
- * earlier review of "ultra_cloud" found but wrongly concluded was safe to leave alone
- * (having only one reference to a key isn't the same as that reference being harmless
- * once the key no longer exists). Removed the same way as the earlier ultra_enhancements
- * fix in this method.
+ * This patch used to ALSO fix a second crash: PreferencesUltraFragment's setup method
+ * (Lpa/l1;->s4) looking up "ultra_cloud" ("Settings cloud backup") by key to wire its
+ * click listener. Dropped once removeSyncUltraResourcesPatch started removing the Sync
+ * Ultra screen's entry point outright — PreferencesUltraFragment is unreachable dead code
+ * once nothing can navigate to it, so a crash inside it can never actually happen. See
+ * removeUltraCloudBackupResourcesPatch.kt for the corresponding resource-side change.
  *
  * Depends on removeUltraCloudBackupResourcesPatch (the XML deletion) so selecting
  * either one in Morphe Manager applies both together.
@@ -40,8 +37,9 @@ import com.android.tools.smali.dexlib2.iface.reference.StringReference
 val removeUltraCloudBackupSetupPatch = bytecodePatch(
     name = "Remove Ultra cloud backup",
     description = "Removes the redundant, Firebase-backend-dependent \"Cloud backup and " +
-        "restore\" section, and the now-misleading \"Settings cloud backup\" shortcut to " +
-        "it, from Sync for Reddit's settings.",
+        "restore\" section from Sync for Reddit's Backup settings screen. This is the " +
+        "bytecode fix \"Remove Ultra cloud backup (resources)\" needs to avoid a crash — " +
+        "select that patch too (or select this one, which pulls it in automatically).",
     default = true,
 ) {
     dependsOn(removeUltraCloudBackupResourcesPatch)
@@ -68,26 +66,5 @@ val removeUltraCloudBackupSetupPatch = bytecodePatch(
 
         val blockCount = implementation.instructions.size - 1 - blockStart
         repeat(blockCount) { implementation.removeInstruction(blockStart) }
-
-        val ultraMethod = preferencesUltraFragmentFingerprint.method
-        val ultraImpl = ultraMethod.implementation!!
-
-        val ultraCloudIndex = ultraImpl.instructions.indexOfFirst { instruction ->
-            instruction.opcode == Opcode.CONST_STRING &&
-                ((instruction as? ReferenceInstruction)?.reference as? StringReference)
-                    ?.string == "ultra_cloud"
-        }
-
-        if (ultraCloudIndex == -1) {
-            error(
-                "Could not find the \"ultra_cloud\" click-listener setup code in the " +
-                    "Ultra preferences fragment. This build's method structure may " +
-                    "differ from what was inspected — re-check with apktool.",
-            )
-        }
-
-        // 6 instructions: the "ultra_cloud" lookup, its findPreference call, and
-        // constructing + attaching the (now pointless) click listener.
-        repeat(6) { ultraImpl.removeInstruction(ultraCloudIndex) }
     }
 }

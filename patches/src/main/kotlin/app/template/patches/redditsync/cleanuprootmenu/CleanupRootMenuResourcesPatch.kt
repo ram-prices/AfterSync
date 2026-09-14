@@ -1,7 +1,7 @@
 package app.template.patches.redditsync.cleanuprootmenu
 
 import app.morphe.patcher.patch.resourcePatch
-import app.template.patches.redditsync.moveultrasetting.moveUltraSettingPatch
+import app.template.patches.redditsync.removesyncultra.removeSyncUltraResourcesPatch
 import org.w3c.dom.Element
 
 /**
@@ -28,17 +28,23 @@ import org.w3c.dom.Element
  *    pure position change with no code implications — same reasoning already confirmed
  *    for the Sync Ultra move.
  *
- * Depends on moveUltraSettingPatch since that patch also edits cat_root.xml's "New"
- * category (extracting "Sync Ultra" out of it before this patch deletes what's left).
+ * Depends on removeSyncUltraResourcesPatch, which also edits cat_root.xml's "New"
+ * category: that patch deletes the "Sync Ultra" entry from wherever it naturally sits
+ * (inside "New") by searching for it by title. Since this patch deletes the entire "New"
+ * category as one subtree, removeSyncUltraResourcesPatch must run first — otherwise its
+ * own search for "Sync Ultra" would fail once this patch had already deleted it as
+ * collateral (same bug class documented in feedback_patch_ordering).
  */
-val cleanupRootMenuPatch = resourcePatch(
-    name = "Clean up root settings menu",
+val cleanupRootMenuResourcesPatch = resourcePatch(
+    name = "Clean up root settings menu (resources)",
     description = "Removes the \"New\" category (\"Developer options\", \"Legacy settings\", " +
         "and its promotional banner) and moves \"Run setup\" into the \"Other\" category " +
-        "in Sync for Reddit's settings.",
+        "in Sync for Reddit's settings. This patch only edits XML — see \"Clean up root " +
+        "settings menu\" for the matching bytecode fix this resource change requires to " +
+        "avoid a crash.",
     default = true,
 ) {
-    dependsOn(moveUltraSettingPatch)
+    dependsOn(removeSyncUltraResourcesPatch)
 
     compatibleWith("com.laurencedawson.reddit_sync"("v23.06.30-13:39"))
 

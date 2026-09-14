@@ -19,21 +19,22 @@ import org.w3c.dom.Element
  * this section alone crashes the settings screen the same way past preference removals
  * have, since PreferencesBackupFragment looks these rows up by key with no null checks.
  *
- * Also removes "ultra_cloud" ("Settings cloud backup") from the Sync Ultra screen's
- * "Cloud services" category (res/xml/cat_ultra.xml) — confirmed by hand via apktool
- * that this row's click handler (Lpa/l1;->q4, via the k4 synthetic bridge) does nothing
- * but launch PreferencesActivity with mode=@integer/BACKUP, i.e. it's just a shortcut to
- * the same Backup screen already reachable from the main settings menu. With the Ultra
- * cloud section gone from that screen, this row is a redundant, misleadingly-named
- * duplicate entry pointing at a screen that's now purely local. Confirmed this is the
- * only reference to "ultra_cloud" anywhere in the app, so no bytecode change is needed
- * for this part.
+ * This patch used to ALSO remove "ultra_cloud" ("Settings cloud backup") from the Sync
+ * Ultra screen's "Cloud services" category (res/xml/cat_ultra.xml) — dropped as dead work
+ * once removeSyncUltraResourcesPatch started deleting that entire category (and,
+ * separately, the Sync Ultra entry point itself) outright: with the whole category gone
+ * as one subtree, "ultra_cloud" is removed as collateral regardless, and with the Sync
+ * Ultra screen's entry point gone, PreferencesUltraFragment (which used to look up
+ * "ultra_cloud" to wire its click listener) is unreachable dead code that can never run
+ * — nothing left to crash. See the patch cleanup punch list this was tracked under for
+ * the reasoning (this file no longer touches cat_ultra.xml at all).
  */
 val removeUltraCloudBackupResourcesPatch = resourcePatch(
     name = "Remove Ultra cloud backup (resources)",
     description = "Removes the redundant, Firebase-backend-dependent \"Cloud backup and " +
-        "restore\" section, and the now-misleading \"Settings cloud backup\" shortcut to " +
-        "it, from Sync for Reddit's settings.",
+        "restore\" section from Sync for Reddit's Backup settings screen. This patch only " +
+        "edits XML — see \"Remove Ultra cloud backup\" for the matching bytecode fix this " +
+        "resource change requires to avoid a crash.",
 ) {
     compatibleWith("com.laurencedawson.reddit_sync"("v23.06.30-13:39"))
 
@@ -62,24 +63,6 @@ val removeUltraCloudBackupResourcesPatch = resourcePatch(
 
             val div = divider ?: error("Could not find \"ultra_backup_divider\" in cat_backup.xml.")
             div.parentNode?.removeChild(div)
-        }
-
-        document("res/xml/cat_ultra.xml").use { document ->
-            val entries = document.documentElement.getElementsByTagName("*")
-            var ultraCloud: Element? = null
-
-            for (i in 0 until entries.length) {
-                val element = entries.item(i) as? Element ?: continue
-                val key = element.attributes?.let { attrs ->
-                    (0 until attrs.length).map { attrs.item(it) }
-                        .firstOrNull { (it.localName ?: it.nodeName.substringAfterLast(':')) == "key" }
-                        ?.nodeValue
-                }
-                if (key == "ultra_cloud") { ultraCloud = element; break }
-            }
-
-            val entry = ultraCloud ?: error("Could not find \"ultra_cloud\" in cat_ultra.xml.")
-            entry.parentNode?.removeChild(entry)
         }
     }
 }

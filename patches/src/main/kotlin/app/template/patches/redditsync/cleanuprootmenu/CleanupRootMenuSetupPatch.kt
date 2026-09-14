@@ -9,7 +9,7 @@ import com.android.tools.smali.dexlib2.iface.instruction.NarrowLiteralInstructio
  * Target app: Sync for Reddit (com.laurencedawson.reddit_sync), v23.06.30-13:39.
  *
  * Confirmed via a real device crash log: removing "Developer options" in
- * cleanupRootMenuPatch triggered the same crash pattern already fixed once for
+ * cleanupRootMenuResourcesPatch triggered the same crash pattern already fixed once for
  * "Restore purchases" — PreferencesNewRootFragment (Lpa/u0;->C3) has a separate,
  * earlier force-visibility block for "Developer options" that force-shows the
  * preference for a hardcoded ~9-username allowlist of testers, with no null check.
@@ -33,16 +33,18 @@ import com.android.tools.smali.dexlib2.iface.instruction.NarrowLiteralInstructio
  * v2 stays defined for the later reads, while everything else about the
  * "Developer options" lookup+comparison+setVisible call is still removed.
  *
- * Depends on cleanupRootMenuPatch (the XML deletion) so selecting either one in
+ * Depends on cleanupRootMenuResourcesPatch (the XML deletion) so selecting either one in
  * Morphe Manager applies both together.
  */
 val cleanupRootMenuSetupPatch = bytecodePatch(
-    name = "Clean up root settings menu (fix crash)",
+    name = "Clean up root settings menu",
     description = "Removes the dead \"Developer options\" visibility-check code left " +
-        "behind after removing it from Sync for Reddit's settings menu.",
+        "behind after removing it from Sync for Reddit's settings menu. This is the " +
+        "bytecode fix \"Clean up root settings menu (resources)\" needs to avoid a crash " +
+        "— select that patch too (or select this one, which pulls it in automatically).",
     default = true,
 ) {
-    dependsOn(cleanupRootMenuPatch)
+    dependsOn(cleanupRootMenuResourcesPatch)
 
     compatibleWith("com.laurencedawson.reddit_sync"("v23.06.30-13:39"))
 

@@ -1,8 +1,6 @@
 package app.template.patches.redditsync.removesyncultra
 
 import app.morphe.patcher.patch.resourcePatch
-import app.template.patches.redditsync.moveultrasetting.moveUltraSettingPatch
-import app.template.patches.redditsync.removeultracloudbackup.removeUltraCloudBackupResourcesPatch
 import org.w3c.dom.Element
 
 private data class RelocatedPreference(
@@ -53,19 +51,14 @@ private fun localTagOf(element: Element) = element.localName ?: element.tagName.
  * and "Privacy" categories, and the fragment class itself are deliberately left alone since
  * they're harmless dead weight once unreachable, and touching them buys nothing.
  *
- * Depends on moveUltraSettingPatch so it always runs after "Sync Ultra" has been moved into
- * the "Content" category — otherwise, if this patch ran first, it would find and delete the
- * entry from wherever it originally sat, and moveUltraSettingPatch's own search for it would
- * then fail.
- *
- * Also depends on removeUltraCloudBackupResourcesPatch, which independently removes
- * "ultra_cloud" from the same "Cloud services" category (res/xml/cat_ultra.xml,
- * key="ultra_cloud_section") that this patch empties out and deletes once ultra_paint/
- * ultra_tag are relocated out of it. Confirmed the hard way on a real device: without this
- * dependency, the patcher can run this patch first, which deletes the whole category —
- * "ultra_cloud" included as collateral, since this patch never touches that key itself —
- * before removeUltraCloudBackupResourcesPatch gets a chance to find and remove it on its
- * own, crashing the whole patch run with "Could not find \"ultra_cloud\" in cat_ultra.xml."
+ * Used to also depend on removeUltraCloudBackupResourcesPatch, back when that patch
+ * independently removed "ultra_cloud" from this same "Cloud services" category — running
+ * this patch first (deleting the whole category, "ultra_cloud" included as collateral)
+ * before that patch got a chance to find it on its own crashed the whole patch run with
+ * "Could not find \"ultra_cloud\" in cat_ultra.xml" on a real device. That dependency was
+ * dropped once removeUltraCloudBackupResourcesPatch stopped touching cat_ultra.xml
+ * altogether (dead work once this patch already deletes the whole category outright) —
+ * the two patches no longer share any file, so no ordering relationship is needed.
  */
 val removeSyncUltraResourcesPatch = resourcePatch(
     name = "Remove Sync Ultra screen (resources)",
@@ -76,9 +69,6 @@ val removeSyncUltraResourcesPatch = resourcePatch(
         "settings menu.",
     default = true,
 ) {
-    dependsOn(moveUltraSettingPatch)
-    dependsOn(removeUltraCloudBackupResourcesPatch)
-
     compatibleWith("com.laurencedawson.reddit_sync"("v23.06.30-13:39"))
 
     execute {
