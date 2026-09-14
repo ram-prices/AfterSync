@@ -7,56 +7,68 @@ import org.w3c.dom.Element
  * Target app: Sync for Reddit (com.laurencedawson.reddit_sync), v23.06.30-13:39.
  *
  * Experimental step toward a broader "more expressive" visual pass (per explicit request,
- * loosely inspired by Material 3 Expressive's bigger/rounder shape language — not a
+ * loosely inspired by Material 3 Expressive's bigger/rounder/roomier language — not a
  * literal port of any specific app's implementation; see project chat history for the
- * scoping investigation that led here).
+ * scoping investigation that led here). Deliberately does not touch color at all — Sync
+ * already colors itself dynamically per subreddit (confirmed the app's own real theme sets
+ * colorPrimary/colorSecondary to a flat #777 placeholder, meaning the actual color comes
+ * from somewhere else at runtime, per subreddit) — a fixed palette here would fight that,
+ * not complement it, per explicit follow-up request.
  *
- * A first version of this patch widened the central `ShapeAppearance.M3.Sys.Shape.Corner.*`
- * style tokens in res/values/styles.xml, reasoning that every M3 component references them
- * indirectly. That version built and applied fine but was confirmed on a real device to
- * have NO visible effect anywhere in the app. Root-caused by pulling the actual installed
- * (patched) APK back off the device and decompiling it: the token edit really was present
- * in the installed build, but tracing three concrete, really-rendered widgets (the "Post
- * options" bottom sheet, a MaterialAlertDialog, and CardView) showed every one of them
- * resolves its corner radius through a COMPLETELY SEPARATE, independent resource —
- * app-specific custom styles or plain `dimens.xml` values — never through the
- * `Sys.Shape.Corner.*` token chain at all. That token layer is present in the compiled
- * resources (presumably vestigial Material Components library scaffolding) but nothing
- * in Sync's actual UI reads it.
+ * An early version of this patch widened the central `ShapeAppearance.M3.Sys.Shape.Corner.*`
+ * style tokens, reasoning every M3 component references them indirectly. Confirmed on a
+ * real device (by pulling the installed APK back off and decompiling it) to have NO visible
+ * effect anywhere: tracing three concrete, really-rendered widgets (a bottom sheet, a
+ * MaterialAlertDialog, CardView) showed every one resolves its corner radius through a
+ * completely separate resource — app-specific custom styles or plain `dimens.xml` values —
+ * never through that token chain. It's present in the compiled resources (presumably
+ * vestigial Material Components library scaffolding) but nothing in Sync's own UI reads it.
  *
- * This version targets what was actually confirmed to matter instead:
+ * This version targets only resources confirmed (or, for the ones added in this broader
+ * pass, strongly evidenced by their app-specific, feature-referencing names rather than a
+ * generic library prefix like `mtrl_`/`m3_`/`abc_`) to actually drive Sync's own rendering:
+ *
+ * Shape (res/values/dimens.xml unless noted):
+ * - `cardview_default_radius`/`mtrl_card_corner_radius` — the legacy androidx CardView
+ *   radius and its Material Components successor; both exist because this app was never
+ *   fully migrated off the older CardView-based UI.
+ * - `mtrl_btn_corner_radius` — MaterialButton corners.
+ * - `m3_chip_corner_size` — chip corners (e.g. the "News"/"Rumour" post-flair tags).
+ * - `m3_navigation_drawer_layout_corner_size` — the nav drawer's leading-edge corners.
+ * - `mtrl_snackbar_background_corner_radius` — snackbar corners.
+ * - `mtrl_textinput_box_corner_radius_medium` — any MDC-backed text input box.
  * - `ShapeAppearanceBottomSheetDialog_Rounded` (res/values/styles.xml) — Sync's own custom
- *   style for its rounded modal bottom sheets (confirmed via the real "Post options" sheet
- *   opened from a post's overflow menu on a real device). Only the two top corners are
- *   rounded (it's a bottom sheet — the bottom corners are meant to stay square, flush with
- *   the screen edge), so only those two items are touched.
- * - `cardview_default_radius`/`mtrl_card_corner_radius` (res/values/dimens.xml) — the
- *   legacy androidx CardView radius and its Material Components successor. Both exist
- *   because this app was never fully migrated off the older CardView-based UI; touching
- *   both covers whichever one any given card-like surface actually uses.
- * - `mtrl_btn_corner_radius` (res/values/dimens.xml) — MaterialButton's corner radius.
- * - `m3_chip_corner_size` (res/values/dimens.xml) — chip corner radius (e.g. the small
- *   colored post-flair tags like "News"/"Rumour" on the frontpage).
+ *   style for its rounded modal bottom sheets (confirmed via the real "Post options" sheet).
+ *   Only the two top corners are rounded on purpose — it's a bottom sheet, the bottom
+ *   corners stay square, flush with the screen edge.
  *
- * A second version (16dp cards/buttons/chips, 24dp bottom sheet) was confirmed via the
- * same real-device + decompile process to correctly apply, but read as too subtle a
- * change to notice while just using the app. This version pushes the same values further
- * (24dp cards/buttons/chips, 32dp bottom sheet — now bigger than the stock
- * `m3_alert_dialog_corner_size`) so the change is unmistakable rather than marginal, since
- * the mechanism itself is proven and going bigger costs nothing extra.
+ * Spacing (res/values/dimens.xml, all app-specific names — not stock Android Studio
+ * template dimens despite `activity_horizontal_margin`/`activity_vertical_margin` looking
+ * like ones; every value here is a real, feature-specific dimen actually named after what
+ * it spaces):
+ * - `posts_fragment_list_full_padding`/`posts_fragment_list_half_padding` — the post feed's
+ *   own list padding.
+ * - `comment_row_spacer` — vertical gap between comment rows.
+ * - `static_padding_regular` — a generic app-wide padding constant reused in several places.
  *
- * Deliberately leaves `m3_alert_dialog_corner_size` (28dp) alone — already reasonably
- * rounded on its own — and leaves every OTHER dimens.xml corner value (tooltips,
- * snackbars, text input boxes, the navigation drawer, AppCompat/framework compat widgets
- * like `abc_control_corner_material`) untouched, since those weren't confirmed to affect
- * anything visible in Sync's own screens and widening them indiscriminately risks
- * affecting unrelated system-provided widgets.
+ * Two earlier, more cautious rounds (16dp then 24dp on the smaller shape-only set) were
+ * each confirmed working via the real-device + decompile process but read as too
+ * incremental to actually feel like a redesign. This pass goes further in both scope (adds
+ * the drawer/snackbar/text-input shapes and the whole spacing set) and degree, per explicit
+ * follow-up request to make significant changes in one go rather than many small ones.
+ *
+ * Deliberately still leaves alone: `m3_alert_dialog_corner_size` (28dp, already generously
+ * rounded), AppCompat/framework compat widgets like `abc_control_corner_material` (shared
+ * with system-provided widgets outside Sync's own UI), and calendar/tooltip/progress-
+ * indicator corner dimens (low visual impact, rarely-seen surfaces).
  */
 val expressiveShapesPatch = resourcePatch(
-    name = "Expressive shapes (experimental)",
-    description = "Experimental: widens the corner radius of cards, buttons, chips, and " +
-        "Sync's own custom bottom sheets to a bigger, rounder scale, loosely inspired by " +
-        "Material 3 Expressive.",
+    name = "Expressive shapes and spacing (experimental)",
+    description = "Experimental: widens the corner radius of cards, buttons, chips, the " +
+        "nav drawer, snackbars, text inputs, and Sync's own custom bottom sheets, and " +
+        "gives the post feed and comment list more generous spacing — loosely inspired by " +
+        "Material 3 Expressive. Leaves color untouched; Sync already colors itself " +
+        "dynamically per subreddit.",
 ) {
     compatibleWith("com.laurencedawson.reddit_sync"("v23.06.30-13:39"))
 
@@ -64,10 +76,19 @@ val expressiveShapesPatch = resourcePatch(
         document("res/values/dimens.xml").use { document ->
             // name -> (original, widened)
             val widenedDimens = mapOf(
+                // Shape
                 "cardview_default_radius" to ("2.0dp" to "24.0dp"),
                 "mtrl_card_corner_radius" to ("4.0dp" to "24.0dp"),
                 "mtrl_btn_corner_radius" to ("4.0dp" to "24.0dp"),
                 "m3_chip_corner_size" to ("8.0dp" to "24.0dp"),
+                "m3_navigation_drawer_layout_corner_size" to ("16.0dp" to "28.0dp"),
+                "mtrl_snackbar_background_corner_radius" to ("4.0dp" to "16.0dp"),
+                "mtrl_textinput_box_corner_radius_medium" to ("4.0dp" to "16.0dp"),
+                // Spacing
+                "posts_fragment_list_full_padding" to ("16.0dp" to "24.0dp"),
+                "posts_fragment_list_half_padding" to ("8.0dp" to "16.0dp"),
+                "comment_row_spacer" to ("4.0dp" to "12.0dp"),
+                "static_padding_regular" to ("10.0dp" to "16.0dp"),
             )
 
             val dimens = document.documentElement.getElementsByTagName("dimen")
