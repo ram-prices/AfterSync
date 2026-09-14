@@ -24,18 +24,27 @@ private fun localTagOf(element: Element) = element.localName ?: element.tagName.
 /**
  * Target app: Sync for Reddit (com.laurencedawson.reddit_sync), v23.06.30-13:39.
  *
- * Per explicit request: relocates "Translate text" and "Restore removed comments" to a new
- * "View tweaks" category, and "Paint users" and "Tag users" to a new "Highlighting" category,
- * both on the Comments settings screen (res/xml/cat_comments.xml) — then removes everything
- * else remaining on the Sync Ultra screen (res/xml/cat_ultra.xml), including the "Select text
- * from images" and "Support the dev!" perks and the four already-vestigial "ultra_disabled_*"
- * rows, and the "Sync Ultra" entry point itself from the root settings menu
- * (res/xml/cat_root.xml).
+ * Per explicit request: relocates "Translate text" and "Restore removed comments" into the
+ * existing "View tweaks" category, and "Paint users" and "Tag users" into the existing
+ * "Highlighting" category, both already present on the "Comments" settings screen
+ * (res/xml/cat_comment_view_customization.xml, under the root menu's "Appearance" category)
+ * — then removes everything else remaining on the Sync Ultra screen (res/xml/cat_ultra.xml),
+ * including the "Select text from images" and "Support the dev!" perks and the four
+ * already-vestigial "ultra_disabled_*" rows, and the "Sync Ultra" entry point itself from the
+ * root settings menu (res/xml/cat_root.xml).
+ *
+ * IMPORTANT: this is NOT res/xml/cat_comments.xml (PreferencesCommentsFragment, Lpa/w;) —
+ * that backs the separately-named "Comment options" entry under "Content", a confusingly
+ * similar but different screen. An earlier version of this patch targeted that screen by
+ * mistake; this one targets cat_comment_view_customization.xml (PreferencesCommentViewCustomizationFragment,
+ * Lpa/v;), confirmed by hand via apktool to be the "Comments" entry under "Appearance" and to
+ * already have "View tweaks"/"Highlighting" categories of its own with real preferences in
+ * them (e.g. "Highlight OP", "Show emotes pictures") — exactly matching what was asked for.
  *
  * Confirmed by hand via apktool: none of these four preferences' click behavior is specific
  * to PreferencesUltraFragment (Lpa/l1;) — see removeSyncUltraSetupPatch.kt, which relocates
- * their wiring to PreferencesCommentsFragment (Lpa/w;) and strips the now-pointless setup
- * code from Lpa/l1;->s4()V.
+ * their wiring to PreferencesCommentViewCustomizationFragment (Lpa/v;) and strips the
+ * now-pointless setup code from Lpa/l1;->s4()V.
  *
  * With the "Sync Ultra" entry point gone, cat_ultra.xml and PreferencesUltraFragment become
  * unreachable from the UI — same "can't excise a class outright, orphaning is the practical
@@ -60,10 +69,11 @@ private fun localTagOf(element: Element) = element.localName ?: element.tagName.
  */
 val removeSyncUltraResourcesPatch = resourcePatch(
     name = "Remove Sync Ultra screen (resources)",
-    description = "Relocates \"Translate text\"/\"Restore removed comments\" to a new \"View " +
-        "tweaks\" category and \"Paint users\"/\"Tag users\" to a new \"Highlighting\" " +
-        "category on the Comments settings screen, then removes everything else on the Sync " +
-        "Ultra screen, including its entry point in the root settings menu.",
+    description = "Relocates \"Translate text\"/\"Restore removed comments\" into the " +
+        "existing \"View tweaks\" category and \"Paint users\"/\"Tag users\" into the " +
+        "existing \"Highlighting\" category on the Comments settings screen, then removes " +
+        "everything else on the Sync Ultra screen, including its entry point in the root " +
+        "settings menu.",
     default = true,
 ) {
     dependsOn(moveUltraSettingPatch)
@@ -157,8 +167,24 @@ val removeSyncUltraResourcesPatch = resourcePatch(
             perksCategory.parentNode?.removeChild(perksCategory)
         }
 
-        document("res/xml/cat_comments.xml").use { document ->
-            val root = document.documentElement
+        document("res/xml/cat_comment_view_customization.xml").use { document ->
+            val entries = document.documentElement.getElementsByTagName("*")
+
+            fun findCategoryByHeaderTitle(title: String): Element {
+                for (i in 0 until entries.length) {
+                    val element = entries.item(i) as? Element ?: continue
+                    if (!localTagOf(element).endsWith("CategoryHeaderPreference")) continue
+                    if (attr(element, "categoryTitle") == title) {
+                        return element.parentNode as? Element
+                            ?: error("The \"$title\" category header has no parent element.")
+                    }
+                }
+                error(
+                    "Could not find the \"$title\" category in " +
+                        "res/xml/cat_comment_view_customization.xml. The structure may " +
+                        "differ from what was inspected.",
+                )
+            }
 
             fun newElement(pref: RelocatedPreference): Element {
                 val element = document.createElement(pref.tag)
@@ -169,25 +195,14 @@ val removeSyncUltraResourcesPatch = resourcePatch(
                 return element
             }
 
-            fun newCategory(title: String): Element {
-                val category = document.createElement("PreferenceCategory")
-                val header = document.createElement(
-                    "com.laurencedawson.reddit_sync.ui.preferences.defaults.CategoryHeaderPreference",
-                )
-                header.setAttribute("app:categoryTitle", title)
-                category.appendChild(header)
-                root.appendChild(category)
-                return category
-            }
-
             fun relocatedOrError(key: String) = relocated[key]
                 ?: error("Preference \"$key\" was not captured from res/xml/cat_ultra.xml before it was removed.")
 
-            val viewTweaks = newCategory("View tweaks")
+            val viewTweaks = findCategoryByHeaderTitle("View tweaks")
             viewTweaks.appendChild(newElement(relocatedOrError("ultra_translate")))
             viewTweaks.appendChild(newElement(relocatedOrError("ultra_removed")))
 
-            val highlighting = newCategory("Highlighting")
+            val highlighting = findCategoryByHeaderTitle("Highlighting")
             highlighting.appendChild(newElement(relocatedOrError("ultra_paint")))
             highlighting.appendChild(newElement(relocatedOrError("ultra_tag")))
         }

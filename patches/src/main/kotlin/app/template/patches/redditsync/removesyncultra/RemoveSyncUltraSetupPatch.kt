@@ -2,17 +2,18 @@ package app.template.patches.redditsync.removesyncultra
 
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.removeInstruction
-import app.morphe.patcher.extensions.InstructionExtensions.removeInstructions
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import app.template.patches.redditsync.removerestorepurchases.fingerprints.preferencesUltraFragmentFingerprint
 import app.template.patches.redditsync.removerestorepurchases.removeRestorePurchasesPatch
-import app.template.patches.redditsync.removesyncultra.fingerprints.preferencesCommentsFragmentFingerprint
+import app.template.patches.redditsync.removesyncultra.fingerprints.preferencesCommentViewCustomizationFragmentFingerprint
 import app.template.patches.redditsync.removeultracloudbackup.removeUltraCloudBackupSetupPatch
 import app.template.patches.redditsync.removewebsitepreviews.removeWebsitePreviewsSetupPatch
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.reference.StringReference
+import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
+import com.android.tools.smali.dexlib2.immutable.ImmutableMethodImplementation
 
 /**
  * Target app: Sync for Reddit (com.laurencedawson.reddit_sync), v23.06.30-13:39.
@@ -31,43 +32,60 @@ import com.android.tools.smali.dexlib2.iface.reference.StringReference
  *
  * 2. Four of that method's private per-preference click handlers — l4 (paint, opens the
  *    Lja/e; bottom sheet), m4 (tag, Lka/e;), o4 (removed, Laa/f;), and p4 (translate, opens
- *    https://translate.google.com) — are relocated onto PreferencesCommentsFragment
- *    (Lpa/w;) verbatim. Confirmed each of these four bodies only calls generic, inherited
- *    Fragment methods (Q0/I0) plus static helpers taking a Class/Context/FragmentManager —
- *    nothing specific to Lpa/l1 — so moving them to a different fragment class needs no
- *    body changes, only a defining-class change. (The other two handlers on this method,
- *    n4/"ultra_support" and q4/"ultra_cloud", are NOT moved — "Support the dev!" is being
- *    deleted outright per request, and "ultra_cloud" was already dead code from an earlier
- *    shipped patch.) The originals are left in place on Lpa/l1; as harmless orphaned dead
- *    code, matching this project's established "can't excise methods/classes outright,
- *    orphaning is the practical equivalent" precedent — nothing calls them anymore once
- *    the s4() block above is gone.
+ *    https://translate.google.com) — are relocated onto PreferencesCommentViewCustomizationFragment
+ *    (Lpa/v;, the "Comments" screen under "Appearance" — NOT PreferencesCommentsFragment/
+ *    Lpa/w;, the separately-named "Comment options" screen an earlier version of this patch
+ *    mistakenly targeted) verbatim, by copying their MutableMethod object and only changing
+ *    its defining class — their instructions/register count are untouched, since their
+ *    bodies only call generic, inherited Fragment methods (Q0/I0) plus static helpers taking
+ *    a Class/Context/FragmentManager, nothing specific to Lpa/l1. (The other two handlers on
+ *    this method, n4/"ultra_support" and q4/"ultra_cloud", are NOT moved — "Support the
+ *    dev!" is being deleted outright per request, and "ultra_cloud" was already dead code
+ *    from an earlier shipped patch.) The originals are left in place on Lpa/l1; as harmless
+ *    orphaned dead code, matching this project's established "can't excise methods/classes
+ *    outright, orphaning is the practical equivalent" precedent — nothing calls them anymore
+ *    once the s4() block above is gone.
  *
- * 3. PreferencesCommentsFragment (Lpa/w;) is made to implement the same (renamed)
- *    Preference.OnPreferenceClickListener interface used throughout this app,
- *    Landroidx/preference/Preference$d;, by copying one of the existing tiny
- *    R8-synthetic listener classes' click method (Lpa/f1;->a) as a template, moving it
- *    onto Lpa/w;, and rewriting its body to dispatch by the clicked preference's key
- *    (Preference->r()Ljava/lang/String;, confirmed by hand to be getKey() from
- *    androidx/preference/Preference.smali) to the four relocated handlers above.
+ * 3. PreferencesCommentViewCustomizationFragment (Lpa/v;) is made to implement the same
+ *    (renamed) Preference.OnPreferenceClickListener interface used throughout this app,
+ *    Landroidx/preference/Preference$d;, by adding a brand-new override method (name "a",
+ *    matching that interface's single abstract method — confirmed by hand from one of the
+ *    existing R8-synthetic listener classes, Lpa/f1;->a) that dispatches by the clicked
+ *    preference's key (Preference->r()Ljava/lang/String;, confirmed by hand to be getKey()
+ *    from androidx/preference/Preference.smali) to the four relocated handlers above.
  *
- * 4. PreferencesCommentsFragment's setup method (Lpa/w;->C3), which previously had no
- *    preference-click-wiring at all, gets four new findPreference+setOnPreferenceClickListener
- *    blocks — one per relocated key — added right before its return-void, using the exact
- *    same findPreference (Landroidx/preference/d;->y) and setOnPreferenceClickListener
- *    (Landroidx/preference/Preference;->A0) calls already used throughout this app, just
- *    passing the fragment itself (p0) as the listener instead of constructing a new
- *    R8-synthetic instance.
+ *    This new method is built from scratch via ImmutableMethod/ImmutableMethodImplementation
+ *    rather than by copying an existing method's MutableMethod object, specifically to
+ *    control its register count directly: an earlier version of this patch copied
+ *    Lpa/f1;->a (which only reserves 1 local register, .locals 1, on top of its 2 parameter
+ *    registers) and then cleared and replaced its body with code needing 2 scratch
+ *    registers — MutableMethodImplementation's register count is fixed at construction and
+ *    can't be bumped after the fact, so the extra scratch register silently aliased the
+ *    method's own parameter register instead of getting its own slot. This shipped as
+ *    v1.12.1 and crashed on a real device with a VerifyError ("tried to get class from
+ *    non-reference register v1 (type=Boolean)") the moment the fragment loaded. Building
+ *    the implementation with an explicit register count (2 locals + 2 parameter registers =
+ *    4) up front avoids the whole class of bug.
  *
- * Confirmed the hard way on a real device (the resource-patch equivalent of this same
- * mistake broke removeUltraCloudBackupResourcesPatch — see removeSyncUltraResourcesPatch.kt):
- * the 72-instruction span removed in step 1 is only exactly 72 instructions once
- * removeWebsitePreviewsSetupPatch's "ultra_enhancements" block (4 instructions) and
- * removeUltraCloudBackupSetupPatch's "ultra_cloud" block (6 instructions) have already been
- * removed — both sit inside that same span in the unpatched method. Depends on both (and,
- * for consistency, on removeRestorePurchasesPatch too, even though its block sits entirely
- * before this patch's anchor) so the count is correct regardless of the patcher's chosen
- * execution order.
+ * 4. PreferencesCommentViewCustomizationFragment's setup method (Lpa/v;->C3) gets four new
+ *    findPreference+setOnPreferenceClickListener blocks — one per relocated key — added
+ *    right before its return-void, using the exact same findPreference
+ *    (Landroidx/preference/d;->y) and setOnPreferenceClickListener
+ *    (Landroidx/preference/Preference;->A0) calls already used throughout this app, passing
+ *    the fragment itself (p0) as the listener. Unlike the new "a" method above, this reuses
+ *    C3()'s own existing register frame (it already declares .locals 2 and its own body
+ *    already uses v0/v1 as scratch registers the same way) rather than introducing new ones,
+ *    so it isn't at risk of the same register-aliasing bug.
+ *
+ * Confirmed the hard way on a real device (the resource-patch equivalent of the ordering
+ * half of this same lesson broke removeUltraCloudBackupResourcesPatch — see
+ * removeSyncUltraResourcesPatch.kt): the 72-instruction span removed in step 1 is only
+ * exactly 72 instructions once removeWebsitePreviewsSetupPatch's "ultra_enhancements" block
+ * (4 instructions) and removeUltraCloudBackupSetupPatch's "ultra_cloud" block (6
+ * instructions) have already been removed — both sit inside that same span in the unpatched
+ * method. Depends on both (and, for consistency, on removeRestorePurchasesPatch too, even
+ * though its block sits entirely before this patch's anchor) so the count is correct
+ * regardless of the patcher's chosen execution order.
  */
 val removeSyncUltraSetupPatch = bytecodePatch(
     name = "Remove Sync Ultra screen",
@@ -102,9 +120,9 @@ val removeSyncUltraSetupPatch = bytecodePatch(
         }
         repeat(72) { ultraImpl.removeInstruction(blockStart) }
 
-        // 2. Relocate the paint/tag/removed/translate click handlers onto Lpa/w;.
+        // 2. Relocate the paint/tag/removed/translate click handlers onto Lpa/v;.
         val ultraClass = preferencesUltraFragmentFingerprint.classDef
-        val commentsClass = preferencesCommentsFragmentFingerprint.classDef
+        val viewCustomizationClass = preferencesCommentViewCustomizationFragmentFingerprint.classDef
 
         fun relocateHandler(methodName: String): MutableMethod {
             val original = ultraClass.directMethods.firstOrNull { it.name == methodName }
@@ -114,8 +132,8 @@ val removeSyncUltraSetupPatch = bytecodePatch(
                         "inspected — re-check with apktool.",
                 )
             val moved = MutableMethod(original)
-            moved.definingClass = "Lpa/w;"
-            commentsClass.directMethods.add(moved)
+            moved.definingClass = "Lpa/v;"
+            viewCustomizationClass.directMethods.add(moved)
             return moved
         }
 
@@ -124,21 +142,30 @@ val removeSyncUltraSetupPatch = bytecodePatch(
         relocateHandler("o4") // removed -> Laa/f;
         relocateHandler("p4") // translate -> https://translate.google.com
 
-        // 3. Make Lpa/w; implement Preference$d, using one of the existing R8-synthetic
-        // listener classes' click method as a template for the new override.
-        commentsClass.interfaces.add("Landroidx/preference/Preference\$d;")
+        // 3. Make Lpa/v; implement Preference$d via a brand-new "a" override method, built
+        // with an explicit register count (2 scratch locals + 2 parameter registers) so the
+        // scratch registers below get their own slots instead of aliasing p0/p1.
+        viewCustomizationClass.interfaces.add("Landroidx/preference/Preference\$d;")
 
-        val paintListenerClass = mutableClassDefBy("Lpa/f1;")
-        val listenerTemplate = paintListenerClass.virtualMethods.firstOrNull { it.name == "a" }
+        val listenerTemplate = mutableClassDefBy("Lpa/f1;")
+            .virtualMethods.firstOrNull { it.name == "a" }
             ?: error(
-                "Could not find Lpa/f1;->a's click-listener method to use as a template. " +
-                    "This build's method structure may differ from what was inspected — " +
-                    "re-check with apktool.",
+                "Could not find Lpa/f1;->a's click-listener method to use as a signature " +
+                    "template. This build's method structure may differ from what was " +
+                    "inspected — re-check with apktool.",
             )
-        val dispatch = MutableMethod(listenerTemplate)
-        dispatch.definingClass = "Lpa/w;"
-        val dispatchImpl = dispatch.implementation!!
-        dispatchImpl.removeInstructions(0, dispatchImpl.instructions.size)
+
+        val dispatchDefinition = ImmutableMethod(
+            "Lpa/v;",
+            "a",
+            listenerTemplate.parameters,
+            listenerTemplate.returnType,
+            listenerTemplate.accessFlags,
+            listenerTemplate.annotations,
+            listenerTemplate.hiddenApiRestrictions,
+            ImmutableMethodImplementation(4, emptyList(), emptyList(), emptyList()),
+        )
+        val dispatch = MutableMethod(dispatchDefinition)
         dispatch.addInstructions(
             """
                 invoke-virtual {p1}, Landroidx/preference/Preference;->r()Ljava/lang/String;
@@ -147,7 +174,7 @@ val removeSyncUltraSetupPatch = bytecodePatch(
                 invoke-virtual {v1, v0}, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
                 move-result v1
                 if-eqz v1, :check_tag
-                invoke-direct {p0, p1}, Lpa/w;->l4(Landroidx/preference/Preference;)Z
+                invoke-direct {p0, p1}, Lpa/v;->l4(Landroidx/preference/Preference;)Z
                 move-result p1
                 return p1
                 :check_tag
@@ -155,7 +182,7 @@ val removeSyncUltraSetupPatch = bytecodePatch(
                 invoke-virtual {v1, v0}, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
                 move-result v1
                 if-eqz v1, :check_translate
-                invoke-direct {p0, p1}, Lpa/w;->m4(Landroidx/preference/Preference;)Z
+                invoke-direct {p0, p1}, Lpa/v;->m4(Landroidx/preference/Preference;)Z
                 move-result p1
                 return p1
                 :check_translate
@@ -163,7 +190,7 @@ val removeSyncUltraSetupPatch = bytecodePatch(
                 invoke-virtual {v1, v0}, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
                 move-result v1
                 if-eqz v1, :check_removed
-                invoke-direct {p0, p1}, Lpa/w;->p4(Landroidx/preference/Preference;)Z
+                invoke-direct {p0, p1}, Lpa/v;->p4(Landroidx/preference/Preference;)Z
                 move-result p1
                 return p1
                 :check_removed
@@ -171,7 +198,7 @@ val removeSyncUltraSetupPatch = bytecodePatch(
                 invoke-virtual {v1, v0}, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
                 move-result v1
                 if-eqz v1, :no_match
-                invoke-direct {p0, p1}, Lpa/w;->o4(Landroidx/preference/Preference;)Z
+                invoke-direct {p0, p1}, Lpa/v;->o4(Landroidx/preference/Preference;)Z
                 move-result p1
                 return p1
                 :no_match
@@ -179,17 +206,18 @@ val removeSyncUltraSetupPatch = bytecodePatch(
                 return v1
             """,
         )
-        commentsClass.virtualMethods.add(dispatch)
+        viewCustomizationClass.virtualMethods.add(dispatch)
 
-        // 4. Wire the four relocated preferences to the new listener in Lpa/w;->C3()V.
-        val commentsMethod = preferencesCommentsFragmentFingerprint.method
-        val commentsImpl = commentsMethod.implementation!!
-        val returnIndex = commentsImpl.instructions.indexOfFirst { it.opcode == Opcode.RETURN_VOID }
+        // 4. Wire the four relocated preferences to the new listener in Lpa/v;->C3()V.
+        val viewCustomizationMethod = preferencesCommentViewCustomizationFragmentFingerprint.method
+        val viewCustomizationImpl = viewCustomizationMethod.implementation!!
+        val returnIndex = viewCustomizationImpl.instructions.indexOfFirst { it.opcode == Opcode.RETURN_VOID }
         if (returnIndex == -1) {
             error(
-                "Could not find the final return-void in PreferencesCommentsFragment's " +
-                    "C3(). This build's method structure may differ from what was " +
-                    "inspected — re-check with apktool.",
+                "Could not find the final return-void in " +
+                    "PreferencesCommentViewCustomizationFragment's C3(). This build's " +
+                    "method structure may differ from what was inspected — re-check with " +
+                    "apktool.",
             )
         }
 
@@ -200,7 +228,7 @@ val removeSyncUltraSetupPatch = bytecodePatch(
             invoke-virtual {v0, p0}, Landroidx/preference/Preference;->A0(Landroidx/preference/Preference${'$'}d;)V
         """
 
-        commentsMethod.addInstructions(
+        viewCustomizationMethod.addInstructions(
             returnIndex,
             wireClickListener("ultra_translate") +
                 wireClickListener("ultra_removed") +
