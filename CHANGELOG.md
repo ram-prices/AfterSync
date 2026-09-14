@@ -1,3 +1,9 @@
+## [1.18.2](https://github.com/ram-prices/AfterSync/compare/v1.18.1...v1.18.2) (2026-09-14)
+
+### 🐛 Bug Fixes
+
+* move &height truncation guard into a fresh helper method ([9ad25f7](https://github.com/ram-prices/AfterSync/commit/9ad25f7b9bb80814ce23fd685f47075f5c91babe))
+
 ## [1.18.1](https://github.com/ram-prices/AfterSync/compare/v1.18.0...v1.18.1) (2026-09-14)
 
 ### 🐛 Bug Fixes
