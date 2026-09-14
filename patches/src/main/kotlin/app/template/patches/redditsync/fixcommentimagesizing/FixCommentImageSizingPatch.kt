@@ -382,12 +382,22 @@ val fixCommentImageSizingPatch = bytecodePatch(
         )
         htmlConverterClass.directMethods.add(truncateHelper)
 
-        // Replace the old unconditional 5-instruction truncation block with a call to
-        // the helper above — touches only v2 (the URL string, already known safe to
-        // reassign here), nothing else in this method changes.
-        repeat(5) { htmlImpl.removeInstruction(ampHeightIndex) }
+        // Replace the 4 instructions that USED the "&height" const-string (indexOf,
+        // its result, substring, and its result overwriting the URL register) with a
+        // call to the helper above — touches only v2 (the URL string, already known
+        // safe to reassign here), nothing else in this method changes. The "&height"
+        // const-string itself (at ampHeightIndex) is deliberately left in place rather
+        // than removed with the rest of the block: confirmed on a real device that a
+        // third-party patch bundle (unrelated to this project, found via its package
+        // name in a crash log — "Could not find the '&height' marker") independently
+        // searches this same method for that exact string constant's presence. Same
+        // reasoning already applied a few lines up for the unrelated "height" gate
+        // string: leaving a no-longer-referenced string constant standing as harmless
+        // dead code costs nothing and preserves compatibility with anything else
+        // scanning for it, regardless of patch execution order.
+        repeat(4) { htmlImpl.removeInstruction(ampHeightIndex + 1) }
         htmlMethod.addInstructions(
-            ampHeightIndex,
+            ampHeightIndex + 1,
             """
                 invoke-static {v2}, Lnc/d;->truncateAtHeightParam(Ljava/lang/String;)Ljava/lang/String;
                 move-result-object v2
