@@ -1,7 +1,7 @@
 {
-  "created_at": "2026-09-14T14:45:24",
-  "description": "## [1.18.3](https://github.com/ram-prices/AfterSync/compare/v1.18.2...v1.18.3) (2026-09-14)\n\n### 🐛 Bug Fixes\n\n* revert inline media cropping back to letterbox ([a2d4597](https://github.com/ram-prices/AfterSync/commit/a2d4597ced4bba56a5f76b9c4a2c07c0baf484de))",
-  "download_url": "https://github.com/ram-prices/AfterSync/releases/download/v1.18.3/patches-1.18.3.mpp",
+  "created_at": "2026-09-14T15:04:24",
+  "description": "## [1.19.0](https://github.com/ram-prices/AfterSync/compare/v1.18.3...v1.19.0) (2026-09-14)\n\n### ✨ New Features\n\n* inject real image dimensions for comment-embedded previews ([49c8626](https://github.com/ram-prices/AfterSync/commit/49c8626d3b54daf91623c8c0533a24dff361117e))",
+  "download_url": "https://github.com/ram-prices/AfterSync/releases/download/v1.19.0/patches-1.19.0.mpp",
   "signature_download_url": "",
-  "version": "1.18.3"
+  "version": "1.19.0"
 }

@@ -13,9 +13,9 @@ Click here to add these patches to Morphe: https://morphe.software/add-source?gi
 ## 🩹 Patches list
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.18.3](https://github.com/ram-prices/AfterSync/releases/tag/v1.18.3)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;23 patches total
+> **[v1.19.0](https://github.com/ram-prices/AfterSync/releases/tag/v1.19.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;24 patches total
 <details open>
-<summary>📦 com.laurencedawson.reddit_sync&nbsp;&nbsp;•&nbsp;&nbsp;23 patches</summary>
+<summary>📦 com.laurencedawson.reddit_sync&nbsp;&nbsp;•&nbsp;&nbsp;24 patches</summary>
 <br>
 
 **🎯 Supported versions:**
@@ -28,6 +28,7 @@ Click here to add these patches to Morphe: https://morphe.software/add-source?gi
 | [Clean up root settings menu](#clean-up-root-settings-menu) | Removes the "New" category ("Developer options", "Legacy settings", and its promotional banner) and moves "Run setup" into the "Other" category in Sync for Reddit's settings. |  |
 | [Clean up root settings menu (fix crash)](#clean-up-root-settings-menu-fix-crash) | Removes the dead "Developer options" visibility-check code left behind after removing it from Sync for Reddit's settings menu. |  |
 | [Fix blank images in post bodies](#fix-blank-images-in-post-bodies) | Fixes images embedded directly in a post's own body (not a comment) showing as blank boxes in Sync for Reddit, by giving that render path the available-width value it was never being given. |  |
+| [Fix comment image margins from missing dimensions](#fix-comment-image-margins-from-missing-dimensions) | Fixes comment-embedded preview.redd.it images being boxed as if they were square (causing large empty margins around non-square photos) by giving them the same real-dimension lookup from Reddit's own metadata that post bodies already get. |  |
 | [Fix inline comment image sizing](#fix-inline-comment-image-sizing) | Stops inline images and GIFs in comments/posts from being stretched to a square, caps their size, and gives Giphy embeds a real animated fallback instead of a static link chip when Reddit's own size metadata for them is missing. |  |
 | [Fix preview.redd.it comment/post images](#fix-preview-redd-it-comment-post-images) | Fixes comment and post images hosted on preview.redd.it (Reddit's current inline-image hosting) showing as a raw link instead of embedding properly in Sync for Reddit. |  |
 | [Move Sync Ultra setting](#move-sync-ultra-setting) | Moves the "Sync Ultra" entry in Sync for Reddit's settings from the "New" category to the top of the "Content" category. |  |

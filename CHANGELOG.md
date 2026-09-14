@@ -1,3 +1,9 @@
+## [1.19.0](https://github.com/ram-prices/AfterSync/compare/v1.18.3...v1.19.0) (2026-09-14)
+
+### ✨ New Features
+
+* inject real image dimensions for comment-embedded previews ([49c8626](https://github.com/ram-prices/AfterSync/commit/49c8626d3b54daf91623c8c0533a24dff361117e))
+
 ## [1.18.3](https://github.com/ram-prices/AfterSync/compare/v1.18.2...v1.18.3) (2026-09-14)
 
 ### 🐛 Bug Fixes
