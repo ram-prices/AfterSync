@@ -1,3 +1,9 @@
+## [1.21.12](https://github.com/ram-prices/AfterSync/compare/v1.21.11...v1.21.12) (2026-09-14)
+
+### 🐛 Bug Fixes
+
+* widen inline image embed limits and add captions ([efbd95f](https://github.com/ram-prices/AfterSync/commit/efbd95faa4324b6a0dcced84d9c0e7fc13e97868))
+
 ## [1.21.11](https://github.com/ram-prices/AfterSync/compare/v1.21.10...v1.21.11) (2026-09-14)
 
 ### 🐛 Bug Fixes
