@@ -1,3 +1,9 @@
+## [1.21.10](https://github.com/ram-prices/AfterSync/compare/v1.21.9...v1.21.10) (2026-09-14)
+
+### 🐛 Bug Fixes
+
+* trigger a release for the patch cleanup/merge work ([bd8a253](https://github.com/ram-prices/AfterSync/commit/bd8a253690d279e09f8b3fae6c1ef1b9a52e7606))
+
 ## [1.21.9](https://github.com/ram-prices/AfterSync/compare/v1.21.8...v1.21.9) (2026-09-14)
 
 ### 🐛 Bug Fixes

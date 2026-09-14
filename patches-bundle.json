@@ -1,7 +1,7 @@
 {
-  "created_at": "2026-09-14T17:19:04",
-  "description": "## [1.21.9](https://github.com/ram-prices/AfterSync/compare/v1.21.8...v1.21.9) (2026-09-14)\n\n### 🐛 Bug Fixes\n\n* invert centering flag to isComment, set from CommentsHtmlTextView ([c8ec76b](https://github.com/ram-prices/AfterSync/commit/c8ec76b9b1810710225e336f9736f69105169dc6))",
-  "download_url": "https://github.com/ram-prices/AfterSync/releases/download/v1.21.9/patches-1.21.9.mpp",
+  "created_at": "2026-09-14T17:52:23",
+  "description": "## [1.21.10](https://github.com/ram-prices/AfterSync/compare/v1.21.9...v1.21.10) (2026-09-14)\n\n### 🐛 Bug Fixes\n\n* trigger a release for the patch cleanup/merge work ([bd8a253](https://github.com/ram-prices/AfterSync/commit/bd8a253690d279e09f8b3fae6c1ef1b9a52e7606))",
+  "download_url": "https://github.com/ram-prices/AfterSync/releases/download/v1.21.10/patches-1.21.10.mpp",
   "signature_download_url": "",
-  "version": "1.21.9"
+  "version": "1.21.10"
 }
