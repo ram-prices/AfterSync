@@ -19,12 +19,14 @@ import org.w3c.dom.Element
  * deletion is now safe: it removes the one piece of code that referenced
  * "swipe_sens" by key and would otherwise crash on a missing preference).
  * This patch must be applied together with removeSwipeSensSetupPatch, which
- * it declares as a dependency below.
+ * declares the dependency on this patch (not the other way around).
  */
 val hideGesturesSettingsPatch = resourcePatch(
     name = "Remove Gestures settings (resources)",
     description = "Removes the \"Gestures\" section (Swipe to return, Dim behind activity, " +
-        "Swipe to return sensitivity) from Sync for Reddit's General settings screen.",
+        "Swipe to return sensitivity) from Sync for Reddit's General settings screen. " +
+        "This patch only edits XML — see \"Remove Gestures settings\" for the matching " +
+        "bytecode fix this resource change requires to avoid a crash.",
 ) {
     compatibleWith("com.laurencedawson.reddit_sync"("v23.06.30-13:39"))
 

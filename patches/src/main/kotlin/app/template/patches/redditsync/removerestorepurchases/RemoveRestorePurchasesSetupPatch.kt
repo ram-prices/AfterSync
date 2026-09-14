@@ -46,7 +46,9 @@ val removeRestorePurchasesPatch = bytecodePatch(
     description = "Removes the \"Restore purchases\" entry from Sync for Reddit's settings, " +
         "plus the Sync Ultra screen's \"Restore subscription\" and dev-only \"Reset " +
         "subscription locally\" buttons, now that Ultra and ad removal are unlocked " +
-        "unconditionally and don't depend on this state.",
+        "unconditionally and don't depend on this state. This is the bytecode fix " +
+        "\"Remove Restore purchases (resources)\" needs to avoid a crash — select " +
+        "that patch too (or select this one, which pulls it in automatically).",
     default = true,
 ) {
     dependsOn(removeRestorePurchasesResourcesPatch)

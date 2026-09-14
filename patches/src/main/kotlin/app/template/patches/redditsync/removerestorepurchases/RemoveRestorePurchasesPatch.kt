@@ -43,7 +43,9 @@ val removeRestorePurchasesResourcesPatch = resourcePatch(
     description = "Removes the \"Restore purchases\" entry from Sync for Reddit's settings, " +
         "plus the Sync Ultra screen's \"Restore subscription\" and dev-only \"Reset " +
         "subscription locally\" buttons, now that Ultra and ad removal are unlocked " +
-        "unconditionally and don't depend on this state.",
+        "unconditionally and don't depend on this state. This patch only edits XML — " +
+        "see \"Remove Restore purchases\" for the matching bytecode fix this resource " +
+        "change requires to avoid a crash.",
 ) {
     compatibleWith("com.laurencedawson.reddit_sync"("v23.06.30-13:39"))
 

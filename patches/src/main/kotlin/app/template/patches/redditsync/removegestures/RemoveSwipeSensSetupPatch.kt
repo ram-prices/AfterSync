@@ -44,7 +44,9 @@ val removeSwipeSensSetupPatch = bytecodePatch(
     description = "Removes the \"Gestures\" section (Swipe to return, Dim behind activity, " +
         "Swipe to return sensitivity) from Sync for Reddit's General settings screen, " +
         "including the code that would otherwise crash the settings screen once those " +
-        "preferences no longer exist.",
+        "preferences no longer exist. This is the bytecode fix \"Remove Gestures " +
+        "settings (resources)\" needs to avoid a crash — select that patch too (or " +
+        "select this one, which pulls it in automatically).",
 ) {
     dependsOn(hideGesturesSettingsPatch)
 

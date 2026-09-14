@@ -31,7 +31,9 @@ import com.android.tools.smali.dexlib2.iface.reference.StringReference
 val removeWebsitePreviewsSetupPatch = bytecodePatch(
     name = "Remove Website previews",
     description = "Removes the \"Website previews\" toggle from Sync for Reddit's Sync " +
-        "Ultra screen and disables the underlying feature.",
+        "Ultra screen and disables the underlying feature. This is the bytecode fix " +
+        "\"Remove Website previews (resources)\" needs to avoid a crash — select that " +
+        "patch too (or select this one, which pulls it in automatically).",
     default = true,
 ) {
     dependsOn(removeWebsitePreviewsResourcesPatch)

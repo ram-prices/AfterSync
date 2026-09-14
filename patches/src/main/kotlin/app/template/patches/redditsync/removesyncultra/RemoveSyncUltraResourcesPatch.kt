@@ -66,7 +66,8 @@ val removeSyncUltraResourcesPatch = resourcePatch(
         "existing \"View tweaks\" category and \"Paint users\"/\"Tag users\" into the " +
         "existing \"Highlighting\" category on the Comments settings screen, then removes " +
         "everything else on the Sync Ultra screen, including its entry point in the root " +
-        "settings menu.",
+        "settings menu. This patch only edits XML — see \"Remove Sync Ultra screen\" " +
+        "for the matching bytecode fix this resource change requires to avoid a crash.",
     default = true,
 ) {
     compatibleWith("com.laurencedawson.reddit_sync"("v23.06.30-13:39"))

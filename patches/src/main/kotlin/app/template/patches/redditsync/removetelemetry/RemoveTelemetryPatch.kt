@@ -33,7 +33,9 @@ import app.template.patches.redditsync.removetelemetry.fingerprints.deviceRegist
 val removeTelemetryPatch = bytecodePatch(
     name = "Remove telemetry",
     description = "Disables Crashlytics crash reporting, Firebase Analytics collection, and a " +
-        "device/account registration call to Google's servers in Sync for Reddit.",
+        "device/account registration call to Google's servers in Sync for Reddit. " +
+        "Depends on \"Remove telemetry (resources)\" for the Analytics half — that " +
+        "patch is also safe to use alone if you only want the Analytics flag disabled.",
     default = true,
 ) {
     dependsOn(disableAnalyticsCollectionPatch)

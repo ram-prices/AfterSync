@@ -91,7 +91,10 @@ val removeSyncUltraSetupPatch = bytecodePatch(
     name = "Remove Sync Ultra screen",
     description = "Relocates \"Translate text\"/\"Restore removed comments\"/\"Paint " +
         "users\"/\"Tag users\" click behavior onto the Comments settings screen, and " +
-        "strips the now-pointless preference-wiring setup code from the Sync Ultra screen.",
+        "strips the now-pointless preference-wiring setup code from the Sync Ultra " +
+        "screen. This is the bytecode fix \"Remove Sync Ultra screen (resources)\" " +
+        "needs to avoid a crash — select that patch too (or select this one, which " +
+        "pulls it in automatically).",
     default = true,
 ) {
     dependsOn(removeSyncUltraResourcesPatch)

@@ -59,7 +59,9 @@ val rebrandAboutSetupPatch = bytecodePatch(
     description = "Renames \"Everything else\" to \"About\", removes \"Help and support\"" +
         "/\"Rate app!\"/the original Credits entries, adds a row for the original app's " +
         "version, and repurposes two Credits rows and their links for Morphe and this " +
-        "patch repo's GitHub page in Sync for Reddit.",
+        "patch repo's GitHub page in Sync for Reddit. This is the bytecode fix " +
+        "\"Rebrand About screen (resources)\" needs to avoid a crash — select that " +
+        "patch too (or select this one, which pulls it in automatically).",
     default = true,
 ) {
     dependsOn(rebrandAboutResourcesPatch)

@@ -20,7 +20,9 @@ import org.w3c.dom.Element
 val removeWebsitePreviewsResourcesPatch = resourcePatch(
     name = "Remove Website previews (resources)",
     description = "Removes the \"Website previews\" toggle from Sync for Reddit's Sync " +
-        "Ultra screen and disables the underlying feature.",
+        "Ultra screen and disables the underlying feature. This patch only edits XML " +
+        "— see \"Remove Website previews\" for the matching bytecode fix this resource " +
+        "change requires to avoid a crash.",
 ) {
     compatibleWith("com.laurencedawson.reddit_sync"("v23.06.30-13:39"))
 

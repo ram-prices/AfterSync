@@ -31,7 +31,9 @@ val rebrandAboutResourcesPatch = resourcePatch(
     description = "Renames \"Everything else\" to \"About\", removes \"Help and support\"" +
         "/\"Rate app!\"/the original Credits entries, adds a row for the original app's " +
         "version, and repurposes two Credits rows for Morphe and this patch repo's " +
-        "GitHub page in Sync for Reddit.",
+        "GitHub page in Sync for Reddit. This patch only edits XML — see \"Rebrand " +
+        "About screen\" for the matching bytecode fix this resource change requires " +
+        "to avoid a crash.",
 ) {
     compatibleWith("com.laurencedawson.reddit_sync"("v23.06.30-13:39"))
 

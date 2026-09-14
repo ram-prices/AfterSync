@@ -19,7 +19,11 @@ private const val ANDROID_NS = "http://schemas.android.com/apk/res/android"
  */
 val disableAnalyticsCollectionPatch = resourcePatch(
     name = "Remove telemetry (resources)",
-    description = "Disables Firebase Analytics data collection in Sync for Reddit.",
+    description = "Disables Firebase Analytics data collection in Sync for Reddit. Unlike " +
+        "most \"(resources)\"-suffixed patches in this project, this one is safe to use " +
+        "on its own — see \"Remove telemetry\" for the broader bytecode patch that also " +
+        "disables Crashlytics and a device/account registration call, and depends on " +
+        "this one rather than the other way around.",
 ) {
     compatibleWith("com.laurencedawson.reddit_sync"("v23.06.30-13:39"))
 
