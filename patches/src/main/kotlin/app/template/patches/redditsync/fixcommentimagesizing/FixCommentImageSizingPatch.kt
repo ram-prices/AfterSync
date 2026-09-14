@@ -34,13 +34,21 @@ import com.android.tools.smali.dexlib2.immutable.ImmutableMethodParameter
  *    real aspect ratio. This patch adds a new static helper, Lnb/c;->w4
  *    (Landroid/graphics/drawable/Drawable;II)V, that reads the drawable's real
  *    getIntrinsicWidth()/getIntrinsicHeight(), scales it DOWN to FIT within the s×t box
- *    while preserving its aspect ratio (letterboxed, never cropped), and centers it within
- *    that box — then replaces both of draw()'s setBounds(...) calls that size the actual
- *    *loaded* image (the static-bitmap branch and the animated-GIF branch) with a call to
- *    this helper instead. The third setBounds(...) call in this method, which sizes a
- *    generic loading-placeholder icon (RedditApplication.P) shown before the real image
- *    loads, is deliberately left untouched — a fixed-size placeholder icon doesn't need
- *    aspect-ratio awareness the way a real photo does.
+ *    while preserving its aspect ratio (letterboxed, never cropped), and anchors it to the
+ *    box's top-left corner (rather than centering it) — then replaces both of draw()'s
+ *    setBounds(...) calls that size the actual *loaded* image (the static-bitmap branch and
+ *    the animated-GIF branch) with a call to this helper instead. The third setBounds(...)
+ *    call in this method, which sizes a generic loading-placeholder icon
+ *    (RedditApplication.P) shown before the real image loads, is deliberately left
+ *    untouched — a fixed-size placeholder icon doesn't need aspect-ratio awareness the way
+ *    a real photo does.
+ *
+ *    Top-left anchoring (rather than centering) is a deliberate, explicitly requested
+ *    choice: for the rare remaining cases where the box still isn't perfectly aspect-correct
+ *    (see the no-metadata Giphy fallback note below), any leftover empty space collects in
+ *    one corner instead of forming a symmetric border on both sides — less visually odd, and
+ *    a strict improvement any time the box IS already aspect-correct (nothing to anchor
+ *    differently when there's no leftover space to place).
  *
  *    A v1.17.0-era version of this helper cropped instead of letterboxed (picking the
  *    LARGER of the two axis scale ratios, clipping the canvas to the box) specifically to
@@ -199,11 +207,8 @@ val fixCommentImageSizingPatch = bytecodePatch(
                 mul-float/2addr v4, v2
                 float-to-int v4, v4
 
-                sub-int v5, p1, v3
-                div-int/lit8 v5, v5, 0x2
-
-                sub-int v6, p2, v4
-                div-int/lit8 v6, v6, 0x2
+                const/4 v5, 0x0
+                const/4 v6, 0x0
 
                 add-int v7, v5, v3
                 add-int v3, v6, v4
