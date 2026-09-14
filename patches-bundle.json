@@ -1,7 +1,7 @@
 {
-  "created_at": "2026-09-14T19:05:02",
-  "description": "## [1.21.15](https://github.com/ram-prices/AfterSync/compare/v1.21.14...v1.21.15) (2026-09-14)\n\n### 🐛 Bug Fixes\n\n* fix tap zone for centered post images ([9dbcbeb](https://github.com/ram-prices/AfterSync/commit/9dbcbeb9371624a25e8105d916d2d59dcdabfa54))",
-  "download_url": "https://github.com/ram-prices/AfterSync/releases/download/v1.21.15/patches-1.21.15.mpp",
+  "created_at": "2026-09-14T19:15:22",
+  "description": "## [1.21.16](https://github.com/ram-prices/AfterSync/compare/v1.21.15...v1.21.16) (2026-09-14)\n\n### 🐛 Bug Fixes\n\n* compare captions against the untruncated URL ([aea6951](https://github.com/ram-prices/AfterSync/commit/aea69513f58164c4fa9c21e997ac11fff164b193))",
+  "download_url": "https://github.com/ram-prices/AfterSync/releases/download/v1.21.16/patches-1.21.16.mpp",
   "signature_download_url": "",
-  "version": "1.21.15"
+  "version": "1.21.16"
 }

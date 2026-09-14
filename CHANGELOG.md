@@ -1,3 +1,9 @@
+## [1.21.16](https://github.com/ram-prices/AfterSync/compare/v1.21.15...v1.21.16) (2026-09-14)
+
+### 🐛 Bug Fixes
+
+* compare captions against the untruncated URL ([aea6951](https://github.com/ram-prices/AfterSync/commit/aea69513f58164c4fa9c21e997ac11fff164b193))
+
 ## [1.21.15](https://github.com/ram-prices/AfterSync/compare/v1.21.14...v1.21.15) (2026-09-14)
 
 ### 🐛 Bug Fixes
