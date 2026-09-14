@@ -1,3 +1,9 @@
+## [1.20.0](https://github.com/ram-prices/AfterSync/compare/v1.19.1...v1.20.0) (2026-09-14)
+
+### ✨ New Features
+
+* anchor letterboxed media to top-left instead of centering ([1d6cae9](https://github.com/ram-prices/AfterSync/commit/1d6cae93dcf02894ba2cfd0cde836faa7de7b124))
+
 ## [1.19.1](https://github.com/ram-prices/AfterSync/compare/v1.19.0...v1.19.1) (2026-09-14)
 
 ### 🐛 Bug Fixes

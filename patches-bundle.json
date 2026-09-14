@@ -1,7 +1,7 @@
 {
-  "created_at": "2026-09-14T15:20:57",
-  "description": "## [1.19.1](https://github.com/ram-prices/AfterSync/compare/v1.19.0...v1.19.1) (2026-09-14)\n\n### 🐛 Bug Fixes\n\n* stop discarding real height now that some URLs carry one ([5c1a291](https://github.com/ram-prices/AfterSync/commit/5c1a291628c4c8be8acb1ff97b501aec4b334fa8))",
-  "download_url": "https://github.com/ram-prices/AfterSync/releases/download/v1.19.1/patches-1.19.1.mpp",
+  "created_at": "2026-09-14T15:29:51",
+  "description": "## [1.20.0](https://github.com/ram-prices/AfterSync/compare/v1.19.1...v1.20.0) (2026-09-14)\n\n### ✨ New Features\n\n* anchor letterboxed media to top-left instead of centering ([1d6cae9](https://github.com/ram-prices/AfterSync/commit/1d6cae93dcf02894ba2cfd0cde836faa7de7b124))",
+  "download_url": "https://github.com/ram-prices/AfterSync/releases/download/v1.20.0/patches-1.20.0.mpp",
   "signature_download_url": "",
-  "version": "1.19.1"
+  "version": "1.20.0"
 }
