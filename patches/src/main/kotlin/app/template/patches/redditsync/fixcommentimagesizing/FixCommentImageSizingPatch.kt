@@ -814,6 +814,14 @@ val fixCommentImageSizingPatch = bytecodePatch(
         // "&height" const-string overwrites it. Done before item 5 below since this is the
         // earlier position in the method; item 5's own indices are found fresh afterward
         // so they see this insertion already applied.
+        //
+        // Also snapshot v2 (the URL) into v11 here, BEFORE item 0's truncateAtHeightParam
+        // call strips a trailing "&height=<n>" from it for posts: the display text being
+        // compared against still has that suffix (it was captured from the raw, untouched
+        // buffer), so comparing against the already-truncated v2 made a bare autolinked URL
+        // fail to match itself and show up as a bogus caption — confirmed on a real device
+        // (the URL shown as its own caption ended in "&height=2048", proving the mismatch
+        // was exactly this truncation asymmetry). v11 is free for the same reason v10 is.
         val linkTextSnapshotIndex = htmlImpl.instructions.indexOfFirst { instruction ->
             instruction.opcode == Opcode.CONST_STRING &&
                 ((instruction as? ReferenceInstruction)?.reference as? StringReference)
@@ -827,7 +835,13 @@ val fixCommentImageSizingPatch = bytecodePatch(
                     "from what was inspected — re-check with apktool.",
             )
         }
-        htmlMethod.addInstructions(linkTextSnapshotIndex, "move-object v10, v3")
+        htmlMethod.addInstructions(
+            linkTextSnapshotIndex,
+            """
+                move-object v10, v3
+                move-object v11, v2
+            """,
+        )
 
         // 5. Widen the dimension/aspect-ratio gate that rejects a preview.redd.it image
         // from embedding at all — see the class doc for why. Both constants are unique in
@@ -955,13 +969,14 @@ val fixCommentImageSizingPatch = bytecodePatch(
                 "apktool.",
         )
 
-        // p0 = converter, v10 = the link's markdown display text (snapshotted above), v2 =
-        // this image's URL (already truncated by item 0 above, which is fine for the
-        // text-vs-URL comparison — the only thing ever stripped from it is a trailing
-        // "&height=<n>" a caption phrase would never coincidentally match).
+        // p0 = converter, v10 = the link's markdown display text, v11 = this image's
+        // UNTRUNCATED URL (both snapshotted above, before item 0's truncateAtHeightParam
+        // could strip a trailing "&height=<n>" from the URL that the display text — taken
+        // straight from the raw buffer — still has, which is what broke this comparison the
+        // first time).
         htmlMethod.addInstructions(
             imageAppendIndex + 1,
-            "invoke-static {p0, v10, v2}, Lnc/d;->maybeAppendCaption(Loc/c;Ljava/lang/String;Ljava/lang/String;)V",
+            "invoke-static {p0, v10, v11}, Lnc/d;->maybeAppendCaption(Loc/c;Ljava/lang/String;Ljava/lang/String;)V",
         )
     }
 }
