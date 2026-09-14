@@ -1,6 +1,7 @@
 package app.template.patches.redditsync.fixcommentimagesizing
 
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
+import app.morphe.patcher.extensions.InstructionExtensions.removeInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
@@ -75,11 +76,33 @@ import com.android.tools.smali.dexlib2.immutable.ImmutableMethodParameter
  *    either way) rather than a new local, avoiding this method's own prior crash history
  *    with labeled-branch insertions (see fixPreviewImagesPatch.kt) by using
  *    `Math.min(II)I` instead of a branch.
+ *
+ * 4. Lnc/d;->a(Loc/c;Ljava/lang/String;)V is SyncHtmlToSpannedConverter's fallback for a
+ *    `[gif](giphy|id)` embed when Reddit's `media_metadata` for it has no usable size data
+ *    (confirmed by hand from a real example: Reddit's own JSON reports
+ *    `"media_metadata": {"giphy|<id>": {"status": "invalid"}}` — no "s" size object at
+ *    all — for a Giphy asset that Giphy itself still serves fine at
+ *    https://media.giphy.com/media/<id>/giphy.mp4, i.e. Reddit's classic native
+ *    comment-Giphy integration has bit-rotted server-side, not something this patch can
+ *    fix at the source). The original fallback builds a static, non-animated
+ *    100px-wide thumbnail wrapped in a 56dp icon-and-text "link chip"
+ *    (Lnb/d;/InlineImageSpan) — never an actual inline GIF. Replaces that with a real
+ *    animated embed (Lnb/c;/EmoteImageSpan, the same span class every other inline image
+ *    in this file uses) at a fixed 120dp box, pointed at the higher-res
+ *    media1.giphy.com/.../200.gif URL the WITH-dimensions branch of this same method
+ *    already uses. Since the real dimensions are still unknown, the box can't be made
+ *    aspect-correct the way the with-dimensions case is — but letterboxing (see #1 above)
+ *    means the real loaded GIF still won't be stretched to fill it. This is a full method
+ *    body replacement, not an insertion: the new body was sized to fit in exactly the
+ *    original's own `.locals 3` register budget (confirmed by hand, register-by-register)
+ *    specifically to avoid the register-count pitfall documented in
+ *    removeSyncUltraSetupPatch.kt.
  */
 val fixCommentImageSizingPatch = bytecodePatch(
     name = "Fix inline comment image sizing",
     description = "Stops inline images and GIFs in comments/posts from being stretched to " +
-        "a square, and gives subreddit emote images a more generous box size.",
+        "a square, caps their size, and gives Giphy embeds a real animated fallback " +
+        "instead of a static link chip when Reddit's own size metadata for them is missing.",
     default = true,
 ) {
     compatibleWith("com.laurencedawson.reddit_sync"("v23.06.30-13:39"))
@@ -228,6 +251,56 @@ val fixCommentImageSizingPatch = bytecodePatch(
                 move-result v0
                 invoke-static {p1, v0}, Ljava/lang/Math;->min(II)I
                 move-result p1
+            """,
+        )
+
+        // 4. Give Giphy embeds a real animated fallback when Reddit's own metadata for
+        // them is missing/invalid, instead of a tiny static-thumbnail link chip.
+        val giphyNoDimsFallback = syncHtmlToSpannedConverterFingerprint.classDef
+            .directMethods.firstOrNull { it.name == "a" && it.parameterTypes.size == 2 }
+            ?: error(
+                "Could not find SyncHtmlToSpannedConverter's no-dimensions Giphy fallback " +
+                    "method (Lnc/d;->a). This build's method structure may differ from " +
+                    "what was inspected — re-check with apktool.",
+            )
+        val fallbackImpl = giphyNoDimsFallback.implementation!!
+        fallbackImpl.removeInstructions(0, fallbackImpl.instructions.size)
+        giphyNoDimsFallback.addInstructions(
+            """
+                new-instance v0, Ljava/lang/StringBuilder;
+                invoke-direct {v0}, Ljava/lang/StringBuilder;-><init>()V
+                const-string v1, "https://media1.giphy.com/media/"
+                invoke-virtual {v0, v1}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
+                invoke-virtual {v0, p1}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
+                const-string v1, "/200.gif"
+                invoke-virtual {v0, v1}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
+                invoke-virtual {v0}, Ljava/lang/StringBuilder;->toString()Ljava/lang/String;
+                move-result-object p1
+
+                const/16 v0, 0x78
+                invoke-static {v0}, Lt7/f0;->c(I)I
+                move-result v0
+
+                const/4 v1, 0x2
+                new-array v1, v1, [Ljava/lang/Object;
+
+                new-instance v2, Lnb/c;
+                invoke-direct {v2, p1, v0}, Lnb/c;-><init>(Ljava/lang/String;I)V
+                const/4 v0, 0x0
+                aput-object v2, v1, v0
+
+                new-instance v2, Lmb/d;
+                invoke-direct {v2, p1}, Lmb/d;-><init>(Ljava/lang/String;)V
+                const/4 v0, 0x1
+                aput-object v2, v1, v0
+
+                const-string v0, "￼"
+                invoke-virtual {p0, v0, v1}, Loc/c;->c(Ljava/lang/String;[Ljava/lang/Object;)V
+
+                const-string v0, "\n"
+                invoke-virtual {p0, v0}, Loc/c;->b(Ljava/lang/CharSequence;)V
+
+                return-void
             """,
         )
     }
