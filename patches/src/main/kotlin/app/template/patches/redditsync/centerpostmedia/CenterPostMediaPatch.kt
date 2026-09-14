@@ -7,6 +7,7 @@ import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import app.template.patches.redditsync.centerpostmedia.fingerprints.htmlTextViewRenderFingerprint
 import app.template.patches.redditsync.centerpostmedia.fingerprints.optionsSetPostFingerprint
 import app.template.patches.redditsync.centerpostmedia.fingerprints.spannableBuilderAddSpanFingerprint
+import app.template.patches.redditsync.fixpostbodyimages.fixPostBodyImagesPatch
 import app.template.patches.redditsync.fixpostbodyimages.fingerprints.postCommentHolderBindFingerprint
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
@@ -79,6 +80,17 @@ val centerPostMediaPatch = bytecodePatch(
         "horizontally. Media in comments stays left-aligned.",
     default = true,
 ) {
+    // Both this patch and fixPostBodyImagesPatch independently edit
+    // PostCommentHolder.h() via the same shared fingerprint (postCommentHolderBindFingerprint)
+    // — per feedback_patch_ordering (this project's own memory), sibling patches touching the
+    // same method should pin an explicit order rather than assume implicit safety. Diagnostic
+    // logging confirmed this patch's edits to that method (a checkpoint at the very top of
+    // h(), and one right after the setPost call) never fire on a real device at all, despite
+    // compiling and applying without any error — while fixPostBodyImagesPatch's own edit to
+    // the same method is confirmed working. Explicit dependsOn resolves the ambiguity about
+    // which patch's edits to the shared method actually persist.
+    dependsOn(fixPostBodyImagesPatch)
+
     compatibleWith("com.laurencedawson.reddit_sync"("v23.06.30-13:39"))
 
     execute {
