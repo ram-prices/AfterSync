@@ -1,3 +1,9 @@
+## [1.12.1](https://github.com/ram-prices/AfterSync/compare/v1.12.0...v1.12.1) (2026-09-14)
+
+### 🐛 Bug Fixes
+
+* pin patch ordering so the Sync Ultra removal doesn't race sibling patches ([1bbb48f](https://github.com/ram-prices/AfterSync/commit/1bbb48f244a849de1c5120e24adbfcd50b2dd4ec))
+
 ## [1.12.0](https://github.com/ram-prices/AfterSync/compare/v1.11.2...v1.12.0) (2026-09-13)
 
 ### ✨ New Features
