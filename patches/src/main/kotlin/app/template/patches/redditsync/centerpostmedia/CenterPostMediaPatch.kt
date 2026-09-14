@@ -308,11 +308,56 @@ val centerPostMediaPatch = bytecodePatch(
             "invoke-static {v0, p1}, Loc/c;->maybeCenterMediaSpans(Loc/c;Lnc/a;)V",
         )
 
+        // TEMPORARY diagnostic: setPost is never logging at all (not just returning
+        // isPost=false) — meaning either it's never being called from
+        // PostCommentHolder.h(), or that whole method isn't reached the way expected for
+        // this exact render. A zero-arg-friendly helper (takes only an int checkpoint ID,
+        // so it needs no registers from the tightly-constrained 2-local h() beyond one
+        // already free at each call site) placed at two points — the very top of h(), and
+        // right after the setPost call — will show which one is actually failing.
+        val logCheckpointDefinition = ImmutableMethod(
+            "Lnc/a;",
+            "logCenterCheckpoint",
+            listOf(ImmutableMethodParameter("I", emptySet(), "checkpoint")),
+            "V",
+            AccessFlags.PUBLIC.value or AccessFlags.STATIC.value,
+            emptySet(),
+            emptySet(),
+            ImmutableMethodImplementation(3, emptyList(), emptyList(), emptyList()),
+        )
+        val logCheckpoint = MutableMethod(logCheckpointDefinition)
+        logCheckpoint.addInstructions(
+            """
+                new-instance v0, Ljava/lang/StringBuilder;
+                invoke-direct {v0}, Ljava/lang/StringBuilder;-><init>()V
+                const-string v1, "CenterPostMedia: checkpoint "
+                invoke-virtual {v0, v1}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
+                invoke-virtual {v0, p0}, Ljava/lang/StringBuilder;->append(I)Ljava/lang/StringBuilder;
+                invoke-virtual {v0}, Ljava/lang/StringBuilder;->toString()Ljava/lang/String;
+                move-result-object v0
+                const-string v1, "CenterPostMedia"
+                invoke-static {v1, v0}, Landroid/util/Log;->e(Ljava/lang/String;Ljava/lang/String;)I
+                return-void
+            """,
+        )
+        optionsClass.directMethods.add(logCheckpoint)
+
         // 4. Flip the new field to true only for posts, anchored on Lnc/a;'s no-arg
         // constructor call (unique in this method) — independent of wherever
         // fixPostBodyImagesPatch's own edit to this same method ends up.
         val bindMethod = postCommentHolderBindFingerprint.method
         val bindImplementation = bindMethod.implementation!!
+
+        // Checkpoint 1: is h() reached at all for this render? Inserted before the
+        // original first instruction — v0 is safe scratch here since nothing has run yet
+        // and the original code overwrites it immediately anyway.
+        bindMethod.addInstructions(
+            0,
+            """
+                const/4 v0, 0x1
+                invoke-static {v0}, Lnc/a;->logCenterCheckpoint(I)V
+            """,
+        )
 
         val optionsInitIndex = bindImplementation.instructions.indexOfFirst { instruction ->
             (instruction as? ReferenceInstruction)?.reference.let {
@@ -335,6 +380,8 @@ val centerPostMediaPatch = bytecodePatch(
             """
                 const/4 v1, 0x1
                 invoke-static {v0, v1}, Lnc/a;->setPost(Lnc/a;Z)Lnc/a;
+                const/4 v1, 0x2
+                invoke-static {v1}, Lnc/a;->logCenterCheckpoint(I)V
             """,
         )
     }
