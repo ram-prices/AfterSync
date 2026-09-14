@@ -277,15 +277,19 @@ private const val CAPTION_RELATIVE_TEXT_SIZE = 0.75f
  *    existing, unmodified comparison) — no new branches, no new registers.
  *
  * 6. The same method appends a caption below an embedded preview.redd.it image when the
- *    markdown link's display text differs from its URL (e.g.
- *    `[Great sunset photo](https://preview.redd.it/...)` vs. a bare autolinked URL, where
- *    display text and URL are identical and no caption is wanted). HK Morphe Patches
- *    implements this with a new class bundled in via Morphe's extendWith(...) extension
- *    mechanism (compiled Java, packaged separately into the APK) plus a custom click-span
- *    class so the caption also becomes the full-screen image viewer's title. This version
- *    only ports the caption-below-the-image half: the logic is simple enough (an
- *    empty/equalsIgnoreCase check plus two spans) to fit in one new static helper
- *    (`maybeAppendCaption`, added to this same class) rather than needing extendWith(...)
+ *    markdown link's display text is genuinely different from its URL — not just an exact
+ *    match, but not a link-label either (e.g. a bare autolinked URL, or Reddit's own
+ *    domain-only rendering of one, like showing "preview.redd.it" as the visible text for
+ *    a link whose href is the full image URL — an early version used an exact
+ *    equalsIgnoreCase check and still showed these as bogus captions, so this checks
+ *    whether the URL merely *contains* the display text instead, catching both cases: a
+ *    real caption like "Great sunset photo" is never a substring of the URL it's attached
+ *    to). HK Morphe Patches implements this with a new class bundled in via Morphe's
+ *    extendWith(...) extension mechanism (compiled Java, packaged separately into the
+ *    APK) plus a custom click-span class so the caption also becomes the full-screen
+ *    image viewer's title. This version only ports the caption-below-the-image half: the
+ *    logic is simple enough to fit in one new static helper (`maybeAppendCaption`, added
+ *    to this same class) rather than needing extendWith(...)
  *    — a mechanism this project has never used. The viewer-title half is deliberately not
  *    ported: it requires intercepting the image's click behavior, and the class that
  *    handles it (Lmb/d;, CustomUrlSpan) is a large, heavily-shared click handler used by
@@ -738,7 +742,7 @@ val fixCommentImageSizingPatch = bytecodePatch(
         // bare URL — see the class doc for why this is a new helper rather than a branch
         // spliced into this method, and why the viewer-title half of HK Morphe Patches'
         // version isn't ported.
-        val captionHelperImpl = ImmutableMethodImplementation(6, emptyList(), emptyList(), emptyList())
+        val captionHelperImpl = ImmutableMethodImplementation(8, emptyList(), emptyList(), emptyList())
         val captionHelperDefinition = ImmutableMethod(
             "Lnc/d;",
             "maybeAppendCaption",
@@ -760,7 +764,11 @@ val fixCommentImageSizingPatch = bytecodePatch(
                 move-result v0
                 if-nez v0, :no_caption
 
-                invoke-virtual {p1, p2}, Ljava/lang/String;->equalsIgnoreCase(Ljava/lang/String;)Z
+                invoke-virtual {p2}, Ljava/lang/String;->toLowerCase()Ljava/lang/String;
+                move-result-object v3
+                invoke-virtual {p1}, Ljava/lang/String;->toLowerCase()Ljava/lang/String;
+                move-result-object v4
+                invoke-virtual {v3, v4}, Ljava/lang/String;->contains(Ljava/lang/CharSequence;)Z
                 move-result v0
                 if-nez v0, :no_caption
 
