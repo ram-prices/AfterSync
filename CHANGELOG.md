@@ -1,3 +1,9 @@
+## [1.18.3](https://github.com/ram-prices/AfterSync/compare/v1.18.2...v1.18.3) (2026-09-14)
+
+### 🐛 Bug Fixes
+
+* revert inline media cropping back to letterbox ([a2d4597](https://github.com/ram-prices/AfterSync/commit/a2d4597ced4bba56a5f76b9c4a2c07c0baf484de))
+
 ## [1.18.2](https://github.com/ram-prices/AfterSync/compare/v1.18.1...v1.18.2) (2026-09-14)
 
 ### 🐛 Bug Fixes
