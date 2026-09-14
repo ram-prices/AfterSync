@@ -1,3 +1,9 @@
+## [1.15.0](https://github.com/ram-prices/AfterSync/compare/v1.14.0...v1.15.0) (2026-09-14)
+
+### ✨ New Features
+
+* give Giphy embeds a real animated fallback instead of a link chip ([22a7de0](https://github.com/ram-prices/AfterSync/commit/22a7de087bf3b0e0b00c222d7cea234c43a40b02))
+
 ## [1.14.0](https://github.com/ram-prices/AfterSync/compare/v1.13.0...v1.14.0) (2026-09-14)
 
 ### ✨ New Features
