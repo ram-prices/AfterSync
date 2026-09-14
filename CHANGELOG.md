@@ -1,3 +1,9 @@
+## [1.21.2](https://github.com/ram-prices/AfterSync/compare/v1.21.1...v1.21.2) (2026-09-14)
+
+### 🐛 Bug Fixes
+
+* correct setPost's register count (needed 2, declared 1) ([acb3f1d](https://github.com/ram-prices/AfterSync/commit/acb3f1d8ba83527e50d467c94d250d0389ece816))
+
 ## [1.21.1](https://github.com/ram-prices/AfterSync/compare/v1.21.0...v1.21.1) (2026-09-14)
 
 ### 🐛 Bug Fixes
