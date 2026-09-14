@@ -4,11 +4,10 @@ import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.util.proxy.mutableTypes.MutableField
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
+import app.template.patches.redditsync.centerpostmedia.fingerprints.commentsHtmlTextViewRenderFingerprint
 import app.template.patches.redditsync.centerpostmedia.fingerprints.htmlTextViewRenderFingerprint
 import app.template.patches.redditsync.centerpostmedia.fingerprints.optionsSetPostFingerprint
 import app.template.patches.redditsync.centerpostmedia.fingerprints.spannableBuilderAddSpanFingerprint
-import app.template.patches.redditsync.fixpostbodyimages.fixPostBodyImagesPatch
-import app.template.patches.redditsync.fixpostbodyimages.fingerprints.postCommentHolderBindFingerprint
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
@@ -36,13 +35,28 @@ import com.android.tools.smali.dexlib2.immutable.ImmutableMethodParameter
  * is one of the app's media span types, and queue an additional AlignmentSpan.Standard(CENTER)
  * over that same [start, end) range.
  *
- * The one thing needed to make this post-only: a new boolean field on Lnc/a; ("Options.java",
- * the render-options object both PostCommentHolder and CommentsHtmlTextView build before
- * rendering), set true only by PostCommentHolder (posts) and left at its default false
- * everywhere else (comments) — mirroring the existing d(I)/e(Lxa/d;) builder-style setters
- * already on that class.
+ * The flag that makes this post-only is inverted from what you'd first reach for: a boolean
+ * field on Lnc/a; ("Options.java", the render-options object every render builds) called
+ * isComment, defaulting to false and set true ONLY by CommentsHtmlTextView.J() (a comment's
+ * own body render) — NOT a field set true by posts. Centering triggers whenever isComment is
+ * false.
  *
- * Implementation notes on where each piece lives, and why:
+ * A first version did it the "obvious" way — an isPost field set true by
+ * PostCommentHolder.h() (a post's own body render) — and centering triggered when isPost was
+ * true. That version compiled, applied without any error, and even ran (maybeCenterMediaSpans
+ * itself fired reliably) — but isPost read back as false 100% of the time on a real device,
+ * and diagnostic checkpoint logging (literally the first instruction in
+ * PostCommentHolder.h(), and another right after the setter call) never logged at all, on
+ * several separate real-device tests, despite fixPostBodyImagesPatch's own unrelated edit to
+ * that exact same method being confirmed working. The root cause was never conclusively
+ * pinned down. Rather than keep guessing at bytecode-level interactions with that specific
+ * method, this version avoids touching PostCommentHolder.h() (and needing any dependsOn
+ * relationship with fixPostBodyImagesPatch) entirely — CommentsHtmlTextView.J() is untouched
+ * by any other patch in this project, has a generous 6-register budget (vs.
+ * PostCommentHolder.h()'s tight 2), and posts get centering "for free" simply by never
+ * setting the new field at all, since its default value is exactly what's needed.
+ *
+ * Implementation notes on where each remaining piece lives, and why:
  * - The centering LOGIC (a loop + several instanceof checks + a conditional queue-add) is a
  *   brand-new STATIC method added to Loc/c; itself (`maybeCenterMediaSpans(Loc/c;Lnc/a;)V`,
  *   taking the builder as an explicit first param rather than as an instance method's
@@ -53,26 +67,19 @@ import com.android.tools.smali.dexlib2.immutable.ImmutableMethodParameter
  *   pre-optimized existing code. It's added to Loc/c; specifically (not some unrelated
  *   class) so it can freely `iget`/`iput` Loc/c$a;'s fields exactly like Loc/c;'s own
  *   existing methods already do — legal only because it's compiled as part of the same
- *   class. Static, like every other from-scratch helper in this project, was not just a
- *   style choice: a first attempt made it a plain public instance method and added it to
- *   `directMethods` — but dex's "direct" method category is only for static/private/
- *   constructor methods, and a non-static, non-private, non-constructor method belongs in
- *   `virtualMethods` instead. Getting this wrong doesn't just break one class — it corrupts
- *   the dex file badly enough that ART refuses to load ANY class from it, confirmed via a
- *   real device crash log: `Direct/virtual method ... not in expected list`, with the whole
- *   app failing to even instantiate its own Application subclass. Making both new methods
- *   static (taking their "receiver" as an explicit first parameter instead) sidesteps the
- *   direct/virtual distinction entirely, the same way every prior helper in this project
- *   already does.
+ *   class. Static, like every other from-scratch helper in this project: a plain public
+ *   instance method belongs in dexlib2's virtualMethods, not directMethods (dex's "direct"
+ *   category is only for static/private/constructor methods) — adding one to directMethods
+ *   (as a first attempt here did) corrupts the dex file badly enough that ART refuses to load
+ *   ANY class from it at all ("Direct/virtual method ... not in expected list"), confirmed via
+ *   a real device crash log showing the whole app failing to even instantiate its Application
+ *   class.
  * - The call site inside HtmlTextView.H(Lnc/a;Ljava/lang/String;)V (an existing method) is
  *   two straight-line instructions with zero new branches: read the new boolean field, then
  *   unconditionally call the helper — inserted between the existing parse call and the
  *   existing finalize call.
- * - The call site inside PostCommentHolder.h(Lxa/d;I)V that flips the new field to true is
- *   anchored on Lnc/a;'s constructor call (unique in that method), a separate, independent
- *   anchor from fixPostBodyImagesPatch's own edit to this same method — both patches only add
- *   instructions (never remove any here), so they compose safely in either order without a
- *   dependsOn.
+ * - The call site inside CommentsHtmlTextView.J(Lxa/d;Ljava/lang/String;)V that flips the new
+ *   field to true is anchored on Lnc/a;'s constructor call (unique in that method).
  */
 val centerPostMediaPatch = bytecodePatch(
     name = "Center media in posts",
@@ -80,27 +87,17 @@ val centerPostMediaPatch = bytecodePatch(
         "horizontally. Media in comments stays left-aligned.",
     default = true,
 ) {
-    // Both this patch and fixPostBodyImagesPatch independently edit
-    // PostCommentHolder.h() via the same shared fingerprint (postCommentHolderBindFingerprint)
-    // — per feedback_patch_ordering (this project's own memory), sibling patches touching the
-    // same method should pin an explicit order rather than assume implicit safety. Diagnostic
-    // logging confirmed this patch's edits to that method (a checkpoint at the very top of
-    // h(), and one right after the setPost call) never fire on a real device at all, despite
-    // compiling and applying without any error — while fixPostBodyImagesPatch's own edit to
-    // the same method is confirmed working. Explicit dependsOn resolves the ambiguity about
-    // which patch's edits to the shared method actually persist.
-    dependsOn(fixPostBodyImagesPatch)
-
     compatibleWith("com.laurencedawson.reddit_sync"("v23.06.30-13:39"))
 
     execute {
-        // 1. Add the new "is this render for a post?" field + builder-style setter to Lnc/a;.
+        // 1. Add the new "is this render for a comment?" field + builder-style setter to
+        // Lnc/a;. Deliberately inverted from "isPost" — see the class doc for why.
         val optionsClass = optionsSetPostFingerprint.classDef
         optionsClass.instanceFields.add(
             MutableField(
                 ImmutableField(
                     "Lnc/a;",
-                    "isPost",
+                    "isComment",
                     "Z",
                     AccessFlags.PUBLIC.value,
                     null,
@@ -110,81 +107,40 @@ val centerPostMediaPatch = bytecodePatch(
             ),
         )
 
-        // Static (matching every other from-scratch helper in this project), taking the
-        // Lnc/a; receiver as an explicit first param rather than as an instance method's
-        // implicit "this". This isn't just style: a plain public INSTANCE method belongs in
-        // dexlib2's virtualMethods, not directMethods (dex's "direct" category is only for
-        // static/private/constructor methods) — adding one to directMethods (as first
-        // attempted here) corrupts the dex file badly enough that ART refuses to load ANY
-        // class from it at all ("Direct/virtual method ... not in expected list"), confirmed
-        // via a real device crash log showing the whole app failing to even instantiate its
-        // Application class. Static sidesteps the direct/virtual distinction entirely.
-        //
-        // TEMPORARY diagnostic: log whether setPost is even reached and whether the field
-        // write sticks when read back immediately — maybeCenterMediaSpans always sees
-        // isPost=false on-device, so this narrows down whether the bug is in the write side
-        // (this method / its call site in PostCommentHolder.h()) or something stranger.
-        //
-        // 5 registers = 3 locals (v0-v2, only needed for the log building) + 2 params.
-        val setIsPostDefinition = ImmutableMethod(
+        // Static, taking the Lnc/a; receiver as an explicit first param — see the class doc
+        // for the direct/virtual reasoning. 2 registers = 0 locals + 2 params.
+        val setIsCommentDefinition = ImmutableMethod(
             "Lnc/a;",
-            "setPost",
+            "setComment",
             listOf(
                 ImmutableMethodParameter("Lnc/a;", emptySet(), "options"),
-                ImmutableMethodParameter("Z", emptySet(), "isPost"),
+                ImmutableMethodParameter("Z", emptySet(), "isComment"),
             ),
             "Lnc/a;",
             AccessFlags.PUBLIC.value or AccessFlags.STATIC.value,
             emptySet(),
             emptySet(),
-            ImmutableMethodImplementation(5, emptyList(), emptyList(), emptyList()),
+            ImmutableMethodImplementation(2, emptyList(), emptyList(), emptyList()),
         )
-        val setIsPost = MutableMethod(setIsPostDefinition)
-        setIsPost.addInstructions(
+        val setIsComment = MutableMethod(setIsCommentDefinition)
+        setIsComment.addInstructions(
             """
-                iput-boolean p1, p0, Lnc/a;->isPost:Z
-
-                new-instance v0, Ljava/lang/StringBuilder;
-                invoke-direct {v0}, Ljava/lang/StringBuilder;-><init>()V
-                const-string v1, "CenterPostMedia: setPost called with isPost="
-                invoke-virtual {v0, v1}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
-                invoke-virtual {v0, p1}, Ljava/lang/StringBuilder;->append(Z)Ljava/lang/StringBuilder;
-                const-string v1, ", read back as="
-                invoke-virtual {v0, v1}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
-                iget-boolean v2, p0, Lnc/a;->isPost:Z
-                invoke-virtual {v0, v2}, Ljava/lang/StringBuilder;->append(Z)Ljava/lang/StringBuilder;
-                invoke-virtual {v0}, Ljava/lang/StringBuilder;->toString()Ljava/lang/String;
-                move-result-object v0
-                const-string v1, "CenterPostMedia"
-                invoke-static {v1, v0}, Landroid/util/Log;->e(Ljava/lang/String;Ljava/lang/String;)I
-
+                iput-boolean p1, p0, Lnc/a;->isComment:Z
                 return-object p0
             """,
         )
-        optionsClass.directMethods.add(setIsPost)
+        optionsClass.directMethods.add(setIsComment)
 
         // 2. Add the centering-logic helper to Loc/c;, reusing its existing span-queuing
         // method (s(Ljava/lang/Object;III)V) and its existing span queue (field "b").
         val builderClass = spannableBuilderAddSpanFingerprint.classDef
 
-        // Static, for the same dex direct/virtual reason as setPost above — takes the
-        // Loc/c; builder as an explicit first param instead of as an instance method's
-        // implicit "this".
-        //
-        // TEMPORARY diagnostic build: centering wasn't visibly taking effect on-device with
-        // no crash and no logged exception, so this adds a few log lines via this app's own
-        // existing "SPANS"-style logger (Lwc/i;->e(String), already used throughout
-        // Loc/c;/Loc/b; for exactly this kind of span tracing) to find out, with real
-        // evidence, which of "never called" / "isPost never true" / "queue empty" /
-        // "no span matched" is actually happening — instead of guessing further. Remove
-        // once the real cause is found.
-        //
-        // 13 registers = 11 locals (v0-v10) + 2 params (the builder, the options object) —
+        // 11 registers = 9 locals (v0-v8) + 2 params (the builder, the options object) —
         // takes the whole Lnc/a; object (rather than a plain boolean) specifically so the
         // call site inside HtmlTextView.H() (which only declares .locals 1) never needs a
         // second scratch register: it just forwards its own untouched Lnc/a; parameter
         // unchanged.
-        val centerHelperImpl = ImmutableMethodImplementation(13, emptyList(), emptyList(), emptyList())
+        val centerHelperImpl = ImmutableMethodImplementation(11, emptyList(), emptyList(), emptyList())
         val centerHelperDefinition = ImmutableMethod(
             "Loc/c;",
             "maybeCenterMediaSpans",
@@ -201,34 +157,12 @@ val centerPostMediaPatch = bytecodePatch(
         val centerHelper = MutableMethod(centerHelperDefinition)
         centerHelper.addInstructions(
             """
-                iget-boolean v0, p1, Lnc/a;->isPost:Z
-
-                new-instance v9, Ljava/lang/StringBuilder;
-                invoke-direct {v9}, Ljava/lang/StringBuilder;-><init>()V
-                const-string v10, "CenterPostMedia: isPost="
-                invoke-virtual {v9, v10}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
-                invoke-virtual {v9, v0}, Ljava/lang/StringBuilder;->append(Z)Ljava/lang/StringBuilder;
-                invoke-virtual {v9}, Ljava/lang/StringBuilder;->toString()Ljava/lang/String;
-                move-result-object v9
-                const-string v10, "CenterPostMedia"
-                invoke-static {v10, v9}, Landroid/util/Log;->e(Ljava/lang/String;Ljava/lang/String;)I
-
-                if-eqz v0, :done
+                iget-boolean v0, p1, Lnc/a;->isComment:Z
+                if-nez v0, :done
 
                 iget-object v0, p0, Loc/c;->b:Ljava/util/ArrayList;
                 invoke-virtual {v0}, Ljava/util/ArrayList;->size()I
                 move-result v1
-
-                new-instance v9, Ljava/lang/StringBuilder;
-                invoke-direct {v9}, Ljava/lang/StringBuilder;-><init>()V
-                const-string v10, "CenterPostMedia: queueSize="
-                invoke-virtual {v9, v10}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
-                invoke-virtual {v9, v1}, Ljava/lang/StringBuilder;->append(I)Ljava/lang/StringBuilder;
-                invoke-virtual {v9}, Ljava/lang/StringBuilder;->toString()Ljava/lang/String;
-                move-result-object v9
-                const-string v10, "CenterPostMedia"
-                invoke-static {v10, v9}, Landroid/util/Log;->e(Ljava/lang/String;Ljava/lang/String;)I
-
                 const/4 v2, 0x0
 
                 :loop
@@ -239,18 +173,6 @@ val centerPostMediaPatch = bytecodePatch(
                 check-cast v3, Loc/c${'$'}a;
 
                 iget-object v4, v3, Loc/c${'$'}a;->d:Ljava/lang/Object;
-
-                new-instance v9, Ljava/lang/StringBuilder;
-                invoke-direct {v9}, Ljava/lang/StringBuilder;-><init>()V
-                const-string v10, "CenterPostMedia: queue entry class="
-                invoke-virtual {v9, v10}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
-                invoke-virtual {v4}, Ljava/lang/Object;->getClass()Ljava/lang/Class;
-                move-result-object v10
-                invoke-virtual {v9, v10}, Ljava/lang/StringBuilder;->append(Ljava/lang/Object;)Ljava/lang/StringBuilder;
-                invoke-virtual {v9}, Ljava/lang/StringBuilder;->toString()Ljava/lang/String;
-                move-result-object v9
-                const-string v10, "CenterPostMedia"
-                invoke-static {v10, v9}, Landroid/util/Log;->e(Ljava/lang/String;Ljava/lang/String;)I
 
                 instance-of v5, v4, Lnb/b;
                 if-nez v5, :is_media
@@ -266,9 +188,6 @@ val centerPostMediaPatch = bytecodePatch(
                 if-eqz v5, :next
 
                 :is_media
-                const-string v9, "CenterPostMedia"
-                const-string v10, "CenterPostMedia: MATCHED, queuing AlignmentSpan"
-                invoke-static {v9, v10}, Landroid/util/Log;->e(Ljava/lang/String;Ljava/lang/String;)I
                 new-instance v5, Landroid/text/style/AlignmentSpan${'$'}Standard;
                 sget-object v6, Landroid/text/Layout${'$'}Alignment;->ALIGN_CENTER:Landroid/text/Layout${'$'}Alignment;
                 invoke-direct {v5, v6}, Landroid/text/style/AlignmentSpan${'$'}Standard;-><init>(Landroid/text/Layout${'$'}Alignment;)V
@@ -289,9 +208,9 @@ val centerPostMediaPatch = bytecodePatch(
         )
         builderClass.directMethods.add(centerHelper)
 
-        // 3. Wire it into HtmlTextView.H(...): read the new field, call the helper, all
-        // between the existing parse call and the existing finalize call — no new branches
-        // added to this existing method at all.
+        // 3. Wire it into HtmlTextView.H(...): call the helper unconditionally between the
+        // existing parse call and the existing finalize call — no new branches added to
+        // this existing method at all (the branch on isComment lives inside the helper).
         val renderMethod = htmlTextViewRenderFingerprint.method
         val renderImplementation = renderMethod.implementation!!
 
@@ -320,58 +239,12 @@ val centerPostMediaPatch = bytecodePatch(
             "invoke-static {v0, p1}, Loc/c;->maybeCenterMediaSpans(Loc/c;Lnc/a;)V",
         )
 
-        // TEMPORARY diagnostic: setPost is never logging at all (not just returning
-        // isPost=false) — meaning either it's never being called from
-        // PostCommentHolder.h(), or that whole method isn't reached the way expected for
-        // this exact render. A zero-arg-friendly helper (takes only an int checkpoint ID,
-        // so it needs no registers from the tightly-constrained 2-local h() beyond one
-        // already free at each call site) placed at two points — the very top of h(), and
-        // right after the setPost call — will show which one is actually failing.
-        val logCheckpointDefinition = ImmutableMethod(
-            "Lnc/a;",
-            "logCenterCheckpoint",
-            listOf(ImmutableMethodParameter("I", emptySet(), "checkpoint")),
-            "V",
-            AccessFlags.PUBLIC.value or AccessFlags.STATIC.value,
-            emptySet(),
-            emptySet(),
-            ImmutableMethodImplementation(3, emptyList(), emptyList(), emptyList()),
-        )
-        val logCheckpoint = MutableMethod(logCheckpointDefinition)
-        logCheckpoint.addInstructions(
-            """
-                new-instance v0, Ljava/lang/StringBuilder;
-                invoke-direct {v0}, Ljava/lang/StringBuilder;-><init>()V
-                const-string v1, "CenterPostMedia: checkpoint "
-                invoke-virtual {v0, v1}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
-                invoke-virtual {v0, p0}, Ljava/lang/StringBuilder;->append(I)Ljava/lang/StringBuilder;
-                invoke-virtual {v0}, Ljava/lang/StringBuilder;->toString()Ljava/lang/String;
-                move-result-object v0
-                const-string v1, "CenterPostMedia"
-                invoke-static {v1, v0}, Landroid/util/Log;->e(Ljava/lang/String;Ljava/lang/String;)I
-                return-void
-            """,
-        )
-        optionsClass.directMethods.add(logCheckpoint)
+        // 4. Flip the new field to true only for comments, anchored on Lnc/a;'s no-arg
+        // constructor call (unique in this method).
+        val commentRenderMethod = commentsHtmlTextViewRenderFingerprint.method
+        val commentRenderImplementation = commentRenderMethod.implementation!!
 
-        // 4. Flip the new field to true only for posts, anchored on Lnc/a;'s no-arg
-        // constructor call (unique in this method) — independent of wherever
-        // fixPostBodyImagesPatch's own edit to this same method ends up.
-        val bindMethod = postCommentHolderBindFingerprint.method
-        val bindImplementation = bindMethod.implementation!!
-
-        // Checkpoint 1: is h() reached at all for this render? Inserted before the
-        // original first instruction — v0 is safe scratch here since nothing has run yet
-        // and the original code overwrites it immediately anyway.
-        bindMethod.addInstructions(
-            0,
-            """
-                const/4 v0, 0x1
-                invoke-static {v0}, Lnc/a;->logCenterCheckpoint(I)V
-            """,
-        )
-
-        val optionsInitIndex = bindImplementation.instructions.indexOfFirst { instruction ->
+        val optionsInitIndex = commentRenderImplementation.instructions.indexOfFirst { instruction ->
             (instruction as? ReferenceInstruction)?.reference.let {
                 (it as? MethodReference)?.let { ref ->
                     ref.definingClass == "Lnc/a;" && ref.name == "<init>" && ref.parameterTypes.isEmpty()
@@ -382,18 +255,19 @@ val centerPostMediaPatch = bytecodePatch(
         if (optionsInitIndex == -1) {
             error(
                 "Could not find the \"new Lnc/a;()\" render-options construction in " +
-                    "PostCommentHolder.h(). This build's method structure may differ from " +
+                    "CommentsHtmlTextView.J(). This build's method structure may differ from " +
                     "what was inspected — re-check with apktool.",
             )
         }
 
-        bindMethod.addInstructions(
+        // v0 holds the just-constructed Lnc/a; instance here; v1 is safe scratch — this
+        // method declares .locals 6 and nothing has touched v1-v5 yet at this exact point
+        // (the very next original instruction overwrites v1 anyway).
+        commentRenderMethod.addInstructions(
             optionsInitIndex + 1,
             """
                 const/4 v1, 0x1
-                invoke-static {v0, v1}, Lnc/a;->setPost(Lnc/a;Z)Lnc/a;
-                const/4 v1, 0x2
-                invoke-static {v1}, Lnc/a;->logCenterCheckpoint(I)V
+                invoke-static {v0, v1}, Lnc/a;->setComment(Lnc/a;Z)Lnc/a;
             """,
         )
     }
