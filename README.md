@@ -13,9 +13,9 @@ Click here to add these patches to Morphe: https://morphe.software/add-source?gi
 ## 🩹 Patches list
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.20.0](https://github.com/ram-prices/AfterSync/releases/tag/v1.20.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;24 patches total
+> **[v1.21.0](https://github.com/ram-prices/AfterSync/releases/tag/v1.21.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;25 patches total
 <details open>
-<summary>📦 com.laurencedawson.reddit_sync&nbsp;&nbsp;•&nbsp;&nbsp;24 patches</summary>
+<summary>📦 com.laurencedawson.reddit_sync&nbsp;&nbsp;•&nbsp;&nbsp;25 patches</summary>
 <br>
 
 **🎯 Supported versions:**
@@ -25,6 +25,7 @@ Click here to add these patches to Morphe: https://morphe.software/add-source?gi
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
+| [Center media in posts](#center-media-in-posts) | Centers images, GIFs, and videos embedded in a post's own body horizontally. Media in comments stays left-aligned. |  |
 | [Clean up root settings menu](#clean-up-root-settings-menu) | Removes the "New" category ("Developer options", "Legacy settings", and its promotional banner) and moves "Run setup" into the "Other" category in Sync for Reddit's settings. |  |
 | [Clean up root settings menu (fix crash)](#clean-up-root-settings-menu-fix-crash) | Removes the dead "Developer options" visibility-check code left behind after removing it from Sync for Reddit's settings menu. |  |
 | [Fix blank images in post bodies](#fix-blank-images-in-post-bodies) | Fixes images embedded directly in a post's own body (not a comment) showing as blank boxes in Sync for Reddit, by giving that render path the available-width value it was never being given. |  |

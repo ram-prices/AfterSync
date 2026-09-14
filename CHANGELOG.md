@@ -1,3 +1,9 @@
+## [1.21.0](https://github.com/ram-prices/AfterSync/compare/v1.20.0...v1.21.0) (2026-09-14)
+
+### ✨ New Features
+
+* center media in posts, leave comments left-aligned ([3264a7c](https://github.com/ram-prices/AfterSync/commit/3264a7c7bc7bb4a96eba96d1a08eb55ed97d2113))
+
 ## [1.20.0](https://github.com/ram-prices/AfterSync/compare/v1.19.1...v1.20.0) (2026-09-14)
 
 ### ✨ New Features
