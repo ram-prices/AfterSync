@@ -38,12 +38,19 @@ import org.w3c.dom.Element
  * - `m3_chip_corner_size` (res/values/dimens.xml) — chip corner radius (e.g. the small
  *   colored post-flair tags like "News"/"Rumour" on the frontpage).
  *
- * Deliberately leaves `m3_alert_dialog_corner_size` (28dp) alone — already generously
- * rounded, no need to push it further — and leaves every OTHER dimens.xml corner value
- * (tooltips, snackbars, text input boxes, the navigation drawer, AppCompat/framework
- * compat widgets like `abc_control_corner_material`) untouched, since those weren't
- * confirmed to affect anything visible in Sync's own screens and widening them
- * indiscriminately risks affecting unrelated system-provided widgets.
+ * A second version (16dp cards/buttons/chips, 24dp bottom sheet) was confirmed via the
+ * same real-device + decompile process to correctly apply, but read as too subtle a
+ * change to notice while just using the app. This version pushes the same values further
+ * (24dp cards/buttons/chips, 32dp bottom sheet — now bigger than the stock
+ * `m3_alert_dialog_corner_size`) so the change is unmistakable rather than marginal, since
+ * the mechanism itself is proven and going bigger costs nothing extra.
+ *
+ * Deliberately leaves `m3_alert_dialog_corner_size` (28dp) alone — already reasonably
+ * rounded on its own — and leaves every OTHER dimens.xml corner value (tooltips,
+ * snackbars, text input boxes, the navigation drawer, AppCompat/framework compat widgets
+ * like `abc_control_corner_material`) untouched, since those weren't confirmed to affect
+ * anything visible in Sync's own screens and widening them indiscriminately risks
+ * affecting unrelated system-provided widgets.
  */
 val expressiveShapesPatch = resourcePatch(
     name = "Expressive shapes (experimental)",
@@ -57,10 +64,10 @@ val expressiveShapesPatch = resourcePatch(
         document("res/values/dimens.xml").use { document ->
             // name -> (original, widened)
             val widenedDimens = mapOf(
-                "cardview_default_radius" to ("2.0dp" to "16.0dp"),
-                "mtrl_card_corner_radius" to ("4.0dp" to "16.0dp"),
-                "mtrl_btn_corner_radius" to ("4.0dp" to "16.0dp"),
-                "m3_chip_corner_size" to ("8.0dp" to "16.0dp"),
+                "cardview_default_radius" to ("2.0dp" to "24.0dp"),
+                "mtrl_card_corner_radius" to ("4.0dp" to "24.0dp"),
+                "mtrl_btn_corner_radius" to ("4.0dp" to "24.0dp"),
+                "m3_chip_corner_size" to ("8.0dp" to "24.0dp"),
             )
 
             val dimens = document.documentElement.getElementsByTagName("dimen")
@@ -124,7 +131,7 @@ val expressiveShapesPatch = resourcePatch(
                             "re-check with apktool.",
                     )
                 }
-                item.textContent = "24.0dp"
+                item.textContent = "32.0dp"
                 widened += itemName
             }
 
