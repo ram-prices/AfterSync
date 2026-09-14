@@ -673,6 +673,33 @@ val fixCommentImageSizingPatch = bytecodePatch(
         )
         htmlConverterClass.directMethods.add(giphyNoDimsFallback)
 
+        // 5/6 setup: the link's markdown display text is read once into v3 near the very
+        // top of this method (via Loc/c;->t(...)) but v3 gets reused as a scratch register
+        // further down this same block — first for the preserved "&height" dead-code
+        // string, then a float temp, then item 5's own threshold constants below — so by
+        // item 6's call site it no longer holds it (confirmed on a real device via a
+        // VerifyError: "register v3 has type PositiveShortConstant but expected Reference:
+        // java.lang.String"). v10 is free for the rest of this block once the "height"
+        // substring gate check higher up is done with it, so snapshot v3 into v10 here, at
+        // the last point it's still the display text — right before the preserved
+        // "&height" const-string overwrites it. Done before item 5 below since this is the
+        // earlier position in the method; item 5's own indices are found fresh afterward
+        // so they see this insertion already applied.
+        val linkTextSnapshotIndex = htmlImpl.instructions.indexOfFirst { instruction ->
+            instruction.opcode == Opcode.CONST_STRING &&
+                ((instruction as? ReferenceInstruction)?.reference as? StringReference)
+                    ?.string == "&height"
+        }
+        if (linkTextSnapshotIndex == -1) {
+            error(
+                "Could not find the \"&height\" marker (the last point where v3 still " +
+                    "holds the link's display text, before it's reused as scratch) in " +
+                    "SyncHtmlToSpannedConverter. This build's method structure may differ " +
+                    "from what was inspected — re-check with apktool.",
+            )
+        }
+        htmlMethod.addInstructions(linkTextSnapshotIndex, "move-object v10, v3")
+
         // 5. Widen the dimension/aspect-ratio gate that rejects a preview.redd.it image
         // from embedding at all — see the class doc for why. Both constants are unique in
         // this method (confirmed by hand via apktool), and each replacement touches only
@@ -795,14 +822,13 @@ val fixCommentImageSizingPatch = bytecodePatch(
                 "apktool.",
         )
 
-        // p0 = converter, v3 = the link's markdown display text (read once near the very
-        // top of this method via Loc/c;->t(...) and never reassigned on the path that
-        // reaches here), v2 = this image's URL (already truncated by item 0 above, which
-        // is fine for the text-vs-URL comparison — the only thing ever stripped from it is
-        // a trailing "&height=<n>" a caption phrase would never coincidentally match).
+        // p0 = converter, v10 = the link's markdown display text (snapshotted above), v2 =
+        // this image's URL (already truncated by item 0 above, which is fine for the
+        // text-vs-URL comparison — the only thing ever stripped from it is a trailing
+        // "&height=<n>" a caption phrase would never coincidentally match).
         htmlMethod.addInstructions(
             imageAppendIndex + 1,
-            "invoke-static {p0, v3, v2}, Lnc/d;->maybeAppendCaption(Loc/c;Ljava/lang/String;Ljava/lang/String;)V",
+            "invoke-static {p0, v10, v2}, Lnc/d;->maybeAppendCaption(Loc/c;Ljava/lang/String;Ljava/lang/String;)V",
         )
     }
 }
