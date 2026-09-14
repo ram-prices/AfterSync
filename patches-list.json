@@ -1,13 +1,15 @@
 {
   "NOTE": "Do NOT manually edit this file. This file is automatically updated when semantic release (release.yml) runs. Manually editing this file can break your releases and break third party tools that use this file.",
-  "version": "1.21.7",
+  "version": "1.21.8",
   "patches": [
     {
       "name": "Center media in posts",
       "description": "Centers images, GIFs, and videos embedded in a post's own body horizontally. Media in comments stays left-aligned.",
       "default": true,
       "category": null,
-      "dependencies": [],
+      "dependencies": [
+        "BytecodePatch"
+      ],
       "compatiblePackages": [
         {
           "packageName": "com.laurencedawson.reddit_sync",

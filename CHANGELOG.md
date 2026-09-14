@@ -1,3 +1,9 @@
+## [1.21.8](https://github.com/ram-prices/AfterSync/compare/v1.21.7...v1.21.8) (2026-09-14)
+
+### 🐛 Bug Fixes
+
+* pin dependsOn(fixPostBodyImagesPatch) for shared method edits ([fc2bcb7](https://github.com/ram-prices/AfterSync/commit/fc2bcb7729a8473c5fc34c34c9dbcb882a37b94f))
+
 ## [1.21.7](https://github.com/ram-prices/AfterSync/compare/v1.21.6...v1.21.7) (2026-09-14)
 
 ### 🐛 Bug Fixes
