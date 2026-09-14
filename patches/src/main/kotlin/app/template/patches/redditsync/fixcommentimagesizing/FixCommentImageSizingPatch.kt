@@ -32,36 +32,41 @@ import com.android.tools.smali.dexlib2.immutable.ImmutableMethodParameter
  *    are the span's fixed box width/height — for both the static-bitmap and animated-GIF
  *    cases, stretching the actual loaded image to exactly fill that box regardless of its
  *    real aspect ratio. This patch adds a new static helper, Lnb/c;->w4
- *    (Landroid/graphics/drawable/Drawable;IILandroid/graphics/Canvas;)V, that reads the
- *    drawable's real getIntrinsicWidth()/getIntrinsicHeight(), scales it up to COVER the
- *    s×t box while preserving its aspect ratio (center-crop, not letterbox — the scale
- *    factor picks the larger of the two axis ratios instead of the smaller), clips the
- *    canvas to exactly the s×t box, then centers the now-oversized-on-one-axis drawable
- *    within it — then replaces both of draw()'s setBounds(...) calls that size the actual
+ *    (Landroid/graphics/drawable/Drawable;II)V, that reads the drawable's real
+ *    getIntrinsicWidth()/getIntrinsicHeight(), scales it DOWN to FIT within the s×t box
+ *    while preserving its aspect ratio (letterboxed, never cropped), and centers it within
+ *    that box — then replaces both of draw()'s setBounds(...) calls that size the actual
  *    *loaded* image (the static-bitmap branch and the animated-GIF branch) with a call to
  *    this helper instead. The third setBounds(...) call in this method, which sizes a
  *    generic loading-placeholder icon (RedditApplication.P) shown before the real image
  *    loads, is deliberately left untouched — a fixed-size placeholder icon doesn't need
  *    aspect-ratio awareness the way a real photo does.
  *
- *    The clip is safe to leave unrestored inside the helper: draw() already wraps every
- *    setBounds+draw() call pair in its own canvas.save()/canvas.translate()/canvas.restore()
- *    (confirmed by hand via apktool — register p1 holds the Canvas throughout draw() and is
- *    never reassigned), and that restore() already runs immediately after the drawable's
- *    own draw(Canvas) call — so the outer save/restore this method already had scopes the
- *    clip to exactly one drawable's draw call with no new save/restore pair needed.
+ *    A v1.17.0-era version of this helper cropped instead of letterboxed (picking the
+ *    LARGER of the two axis scale ratios, clipping the canvas to the box) specifically to
+ *    eliminate empty "pillarbox" margins around non-matching-aspect-ratio media. Reverted
+ *    per explicit follow-up request: cropping trims real image content to force it into
+ *    the box's shape, which trades one complaint (margins) for another (losing part of the
+ *    image) — the user wants the full aspect ratio preserved AND no margins, which cropping
+ *    can't deliver simultaneously.
  *
- *    Originally (v1.12.1-era) this helper fit the image INSIDE the box (letterboxed),
- *    leaving empty "pillarbox" margins on non-matching-aspect-ratio media — the box itself
- *    (s×t) was never touched, so a landscape GIF in a square-ish box still showed visible
- *    empty space to either side. Per explicit follow-up request ("is it possible to
- *    somehow not have those margins?"), this crops instead: the image fully covers the box
- *    with no visible margin, at the cost of trimming its longer axis to fit. This still does
- *    NOT make the box itself aspect-correct — recovering the image's real dimensions before
- *    it's ever sized (e.g. an async re-layout after Glide's callback fires, or a network
- *    probe) is real new architecture with its own failure modes, deliberately out of scope
- *    here — but center-cropping inside a fixed box is the standard, low-risk way to
- *    eliminate visible margins without that.
+ *    Investigated by hand via apktool before reverting: the ACTUAL margin complaint (a
+ *    landscape GIF in a near-square box) only ever came from Lnc/d;->a(...)'s no-metadata
+ *    Giphy fallback (see #4 below), which is the one case in this whole file that uses a
+ *    genuinely fixed, non-aspect-aware box. Every other box this span is used for is
+ *    already sized using the real image dimensions before the span is even constructed:
+ *    preview.redd.it images parse real width/height straight from the URL's query
+ *    parameters (Lnc/d;->e(...)'s own pre-existing, unmodified math), and Giphy embeds
+ *    WITH valid Reddit metadata parse real width/height from that metadata (also
+ *    pre-existing, unmodified stock code, confirmed by hand a few lines away from the
+ *    no-metadata fallback this file replaces). For both of those, letterboxing here is
+ *    already a no-op — the box already matches the image's real shape, so there's nothing
+ *    to letterbox around. Reverting to letterbox therefore removes the cropping distortion
+ *    everywhere while leaving margins eliminated everywhere they were already eliminated
+ *    by the box being aspect-correct to begin with; only the no-metadata Giphy fallback's
+ *    fixed 200×112 box (out of scope here, see #4) can still show a residual margin on an
+ *    unusual aspect ratio, since its real dimensions are never known — the same accepted
+ *    limitation as before, now the ONLY remaining case rather than a general one.
  *
  * 2. Lnc/d;->y(...) (the &lt;img&gt; HTML-tag handler, used for subreddit "emote" images
  *    embedded directly in a comment body) builds every such image with a fixed 42dp-square
@@ -147,10 +152,8 @@ val fixCommentImageSizingPatch = bytecodePatch(
             )
         }
 
-        // 12 registers = 8 locals (v0-v7, unchanged from the fit-inside version) + 4
-        // params (drawable, boxWidth, boxHeight, and the new trailing canvas param) — one
-        // more than before since only a param was added, no new scratch register.
-        val helperImpl = ImmutableMethodImplementation(12, emptyList(), emptyList(), emptyList())
+        // 11 registers = 8 locals (v0-v7) + 3 params (drawable, boxWidth, boxHeight).
+        val helperImpl = ImmutableMethodImplementation(11, emptyList(), emptyList(), emptyList())
         val helperDefinition = ImmutableMethod(
             "Lnb/c;",
             "w4",
@@ -158,7 +161,6 @@ val fixCommentImageSizingPatch = bytecodePatch(
                 ImmutableMethodParameter("Landroid/graphics/drawable/Drawable;", emptySet(), "drawable"),
                 ImmutableMethodParameter("I", emptySet(), "boxWidth"),
                 ImmutableMethodParameter("I", emptySet(), "boxHeight"),
-                ImmutableMethodParameter("Landroid/graphics/Canvas;", emptySet(), "canvas"),
             ),
             "V",
             AccessFlags.PRIVATE.value or AccessFlags.STATIC.value,
@@ -166,8 +168,8 @@ val fixCommentImageSizingPatch = bytecodePatch(
             emptySet(),
             helperImpl,
         )
-        val aspectFillBounds = MutableMethod(helperDefinition)
-        aspectFillBounds.addInstructions(
+        val aspectFitBounds = MutableMethod(helperDefinition)
+        aspectFitBounds.addInstructions(
             """
                 invoke-virtual {p0}, Landroid/graphics/drawable/Drawable;->getIntrinsicWidth()I
                 move-result v0
@@ -185,7 +187,7 @@ val fixCommentImageSizingPatch = bytecodePatch(
                 div-float/2addr v3, v4
 
                 cmpg-float v4, v2, v3
-                if-gtz v4, :use_scale
+                if-ltz v4, :use_scale
                 move v2, v3
                 :use_scale
 
@@ -206,9 +208,6 @@ val fixCommentImageSizingPatch = bytecodePatch(
                 add-int v7, v5, v3
                 add-int v3, v6, v4
 
-                const/4 v0, 0x0
-                invoke-virtual {p3, v0, v0, p1, p2}, Landroid/graphics/Canvas;->clipRect(IIII)Z
-
                 invoke-virtual {p0, v5, v6, v7, v3}, Landroid/graphics/drawable/Drawable;->setBounds(IIII)V
                 return-void
 
@@ -218,18 +217,13 @@ val fixCommentImageSizingPatch = bytecodePatch(
                 return-void
             """,
         )
-        emoteImageSpanClass.directMethods.add(aspectFillBounds)
+        emoteImageSpanClass.directMethods.add(aspectFitBounds)
 
         // Replace the 2nd (static bitmap) and 3rd (animated GIF) setBounds(...) calls —
         // in descending index order so replacing one doesn't shift the other's index.
-        // Both call sites use the identical register pattern: {drawable, 0, 0, s, t}, with
-        // the Canvas sitting unchanged in p1 throughout draw() (confirmed by hand via
-        // apktool), so it can be passed straight through as the helper's trailing arg.
+        // Both call sites use the identical register pattern: {drawable, 0, 0, s, t}.
         listOf(setBoundsIndices[2], setBoundsIndices[1]).forEach { index ->
-            drawMethod.replaceInstruction(
-                index,
-                "invoke-static {p2, p4, p5, p1}, Lnb/c;->w4(Landroid/graphics/drawable/Drawable;IILandroid/graphics/Canvas;)V",
-            )
+            drawMethod.replaceInstruction(index, "invoke-static {p2, p4, p5}, Lnb/c;->w4(Landroid/graphics/drawable/Drawable;II)V")
         }
 
         // 2. Bump the fixed emote-image box from 42dp to 120dp.
