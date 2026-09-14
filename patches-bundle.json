@@ -1,7 +1,7 @@
 {
-  "created_at": "2026-09-14T15:40:44",
-  "description": "## [1.21.0](https://github.com/ram-prices/AfterSync/compare/v1.20.0...v1.21.0) (2026-09-14)\n\n### ✨ New Features\n\n* center media in posts, leave comments left-aligned ([3264a7c](https://github.com/ram-prices/AfterSync/commit/3264a7c7bc7bb4a96eba96d1a08eb55ed97d2113))",
-  "download_url": "https://github.com/ram-prices/AfterSync/releases/download/v1.21.0/patches-1.21.0.mpp",
+  "created_at": "2026-09-14T15:52:59",
+  "description": "## [1.21.1](https://github.com/ram-prices/AfterSync/compare/v1.21.0...v1.21.1) (2026-09-14)\n\n### 🐛 Bug Fixes\n\n* add the new isPost field to instanceFields, not fields ([a3d2063](https://github.com/ram-prices/AfterSync/commit/a3d20634d298281dfddec3305ccf3c141ab96265))",
+  "download_url": "https://github.com/ram-prices/AfterSync/releases/download/v1.21.1/patches-1.21.1.mpp",
   "signature_download_url": "",
-  "version": "1.21.0"
+  "version": "1.21.1"
 }

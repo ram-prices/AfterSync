@@ -1,3 +1,9 @@
+## [1.21.1](https://github.com/ram-prices/AfterSync/compare/v1.21.0...v1.21.1) (2026-09-14)
+
+### 🐛 Bug Fixes
+
+* add the new isPost field to instanceFields, not fields ([a3d2063](https://github.com/ram-prices/AfterSync/commit/a3d20634d298281dfddec3305ccf3c141ab96265))
+
 ## [1.21.0](https://github.com/ram-prices/AfterSync/compare/v1.20.0...v1.21.0) (2026-09-14)
 
 ### ✨ New Features
