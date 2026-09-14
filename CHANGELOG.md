@@ -1,3 +1,9 @@
+## [1.17.0](https://github.com/ram-prices/AfterSync/compare/v1.16.0...v1.17.0) (2026-09-14)
+
+### ✨ New Features
+
+* center-crop inline media to eliminate pillarbox margins ([2fe9d46](https://github.com/ram-prices/AfterSync/commit/2fe9d469ed4455ce0818a49c60b8580abfc6d1d2))
+
 ## [1.16.0](https://github.com/ram-prices/AfterSync/compare/v1.15.0...v1.16.0) (2026-09-14)
 
 ### ✨ New Features
