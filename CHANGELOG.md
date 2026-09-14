@@ -1,3 +1,9 @@
+## [1.18.0](https://github.com/ram-prices/AfterSync/compare/v1.17.0...v1.18.0) (2026-09-14)
+
+### ✨ New Features
+
+* fix blank images in post bodies ([bdce66e](https://github.com/ram-prices/AfterSync/commit/bdce66ee67691d0ac842f8bdb73ce3d687f8933c))
+
 ## [1.17.0](https://github.com/ram-prices/AfterSync/compare/v1.16.0...v1.17.0) (2026-09-14)
 
 ### ✨ New Features
