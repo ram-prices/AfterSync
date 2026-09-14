@@ -1,3 +1,9 @@
+## [1.16.0](https://github.com/ram-prices/AfterSync/compare/v1.15.0...v1.16.0) (2026-09-14)
+
+### ✨ New Features
+
+* widen Giphy embed box to reduce pillarboxing, bump sizes further ([f6fbda9](https://github.com/ram-prices/AfterSync/commit/f6fbda93da0ed5b3dbe3dba8d84eeb2bea7a00c2))
+
 ## [1.15.0](https://github.com/ram-prices/AfterSync/compare/v1.14.0...v1.15.0) (2026-09-14)
 
 ### ✨ New Features
