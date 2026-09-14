@@ -1,3 +1,9 @@
+## [1.21.14](https://github.com/ram-prices/AfterSync/compare/v1.21.13...v1.21.14) (2026-09-14)
+
+### 🐛 Bug Fixes
+
+* don't caption images whose link text is just the URL ([dfcf58c](https://github.com/ram-prices/AfterSync/commit/dfcf58cd0b905e3c7ada55e16c8d0ff105aaa10f))
+
 ## [1.21.13](https://github.com/ram-prices/AfterSync/compare/v1.21.12...v1.21.13) (2026-09-14)
 
 ### 🐛 Bug Fixes
