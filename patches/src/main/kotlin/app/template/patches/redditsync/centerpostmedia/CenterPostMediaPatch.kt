@@ -139,12 +139,20 @@ val centerPostMediaPatch = bytecodePatch(
         // Loc/c; builder as an explicit first param instead of as an instance method's
         // implicit "this".
         //
-        // 11 registers = 9 locals (v0-v8) + 2 params (the builder, the options object) —
+        // TEMPORARY diagnostic build: centering wasn't visibly taking effect on-device with
+        // no crash and no logged exception, so this adds a few log lines via this app's own
+        // existing "SPANS"-style logger (Lwc/i;->e(String), already used throughout
+        // Loc/c;/Loc/b; for exactly this kind of span tracing) to find out, with real
+        // evidence, which of "never called" / "isPost never true" / "queue empty" /
+        // "no span matched" is actually happening — instead of guessing further. Remove
+        // once the real cause is found.
+        //
+        // 13 registers = 11 locals (v0-v10) + 2 params (the builder, the options object) —
         // takes the whole Lnc/a; object (rather than a plain boolean) specifically so the
         // call site inside HtmlTextView.H() (which only declares .locals 1) never needs a
         // second scratch register: it just forwards its own untouched Lnc/a; parameter
         // unchanged.
-        val centerHelperImpl = ImmutableMethodImplementation(11, emptyList(), emptyList(), emptyList())
+        val centerHelperImpl = ImmutableMethodImplementation(13, emptyList(), emptyList(), emptyList())
         val centerHelperDefinition = ImmutableMethod(
             "Loc/c;",
             "maybeCenterMediaSpans",
@@ -162,11 +170,31 @@ val centerPostMediaPatch = bytecodePatch(
         centerHelper.addInstructions(
             """
                 iget-boolean v0, p1, Lnc/a;->isPost:Z
+
+                new-instance v9, Ljava/lang/StringBuilder;
+                invoke-direct {v9}, Ljava/lang/StringBuilder;-><init>()V
+                const-string v10, "CenterPostMedia: isPost="
+                invoke-virtual {v9, v10}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
+                invoke-virtual {v9, v0}, Ljava/lang/StringBuilder;->append(Z)Ljava/lang/StringBuilder;
+                invoke-virtual {v9}, Ljava/lang/StringBuilder;->toString()Ljava/lang/String;
+                move-result-object v9
+                invoke-static {v9}, Lwc/i;->e(Ljava/lang/String;)V
+
                 if-eqz v0, :done
 
                 iget-object v0, p0, Loc/c;->b:Ljava/util/ArrayList;
                 invoke-virtual {v0}, Ljava/util/ArrayList;->size()I
                 move-result v1
+
+                new-instance v9, Ljava/lang/StringBuilder;
+                invoke-direct {v9}, Ljava/lang/StringBuilder;-><init>()V
+                const-string v10, "CenterPostMedia: queueSize="
+                invoke-virtual {v9, v10}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
+                invoke-virtual {v9, v1}, Ljava/lang/StringBuilder;->append(I)Ljava/lang/StringBuilder;
+                invoke-virtual {v9}, Ljava/lang/StringBuilder;->toString()Ljava/lang/String;
+                move-result-object v9
+                invoke-static {v9}, Lwc/i;->e(Ljava/lang/String;)V
+
                 const/4 v2, 0x0
 
                 :loop
@@ -177,6 +205,17 @@ val centerPostMediaPatch = bytecodePatch(
                 check-cast v3, Loc/c${'$'}a;
 
                 iget-object v4, v3, Loc/c${'$'}a;->d:Ljava/lang/Object;
+
+                new-instance v9, Ljava/lang/StringBuilder;
+                invoke-direct {v9}, Ljava/lang/StringBuilder;-><init>()V
+                const-string v10, "CenterPostMedia: queue entry class="
+                invoke-virtual {v9, v10}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
+                invoke-virtual {v4}, Ljava/lang/Object;->getClass()Ljava/lang/Class;
+                move-result-object v10
+                invoke-virtual {v9, v10}, Ljava/lang/StringBuilder;->append(Ljava/lang/Object;)Ljava/lang/StringBuilder;
+                invoke-virtual {v9}, Ljava/lang/StringBuilder;->toString()Ljava/lang/String;
+                move-result-object v9
+                invoke-static {v9}, Lwc/i;->e(Ljava/lang/String;)V
 
                 instance-of v5, v4, Lnb/b;
                 if-nez v5, :is_media
@@ -192,6 +231,8 @@ val centerPostMediaPatch = bytecodePatch(
                 if-eqz v5, :next
 
                 :is_media
+                const-string v9, "CenterPostMedia: MATCHED, queuing AlignmentSpan"
+                invoke-static {v9}, Lwc/i;->e(Ljava/lang/String;)V
                 new-instance v5, Landroid/text/style/AlignmentSpan${'$'}Standard;
                 sget-object v6, Landroid/text/Layout${'$'}Alignment;->ALIGN_CENTER:Landroid/text/Layout${'$'}Alignment;
                 invoke-direct {v5, v6}, Landroid/text/style/AlignmentSpan${'$'}Standard;-><init>(Landroid/text/Layout${'$'}Alignment;)V
