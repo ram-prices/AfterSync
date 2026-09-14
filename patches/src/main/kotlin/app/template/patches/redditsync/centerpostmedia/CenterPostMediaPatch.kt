@@ -178,7 +178,8 @@ val centerPostMediaPatch = bytecodePatch(
                 invoke-virtual {v9, v0}, Ljava/lang/StringBuilder;->append(Z)Ljava/lang/StringBuilder;
                 invoke-virtual {v9}, Ljava/lang/StringBuilder;->toString()Ljava/lang/String;
                 move-result-object v9
-                invoke-static {v9}, Lwc/i;->e(Ljava/lang/String;)V
+                const-string v10, "CenterPostMedia"
+                invoke-static {v10, v9}, Landroid/util/Log;->e(Ljava/lang/String;Ljava/lang/String;)I
 
                 if-eqz v0, :done
 
@@ -193,7 +194,8 @@ val centerPostMediaPatch = bytecodePatch(
                 invoke-virtual {v9, v1}, Ljava/lang/StringBuilder;->append(I)Ljava/lang/StringBuilder;
                 invoke-virtual {v9}, Ljava/lang/StringBuilder;->toString()Ljava/lang/String;
                 move-result-object v9
-                invoke-static {v9}, Lwc/i;->e(Ljava/lang/String;)V
+                const-string v10, "CenterPostMedia"
+                invoke-static {v10, v9}, Landroid/util/Log;->e(Ljava/lang/String;Ljava/lang/String;)I
 
                 const/4 v2, 0x0
 
@@ -215,7 +217,8 @@ val centerPostMediaPatch = bytecodePatch(
                 invoke-virtual {v9, v10}, Ljava/lang/StringBuilder;->append(Ljava/lang/Object;)Ljava/lang/StringBuilder;
                 invoke-virtual {v9}, Ljava/lang/StringBuilder;->toString()Ljava/lang/String;
                 move-result-object v9
-                invoke-static {v9}, Lwc/i;->e(Ljava/lang/String;)V
+                const-string v10, "CenterPostMedia"
+                invoke-static {v10, v9}, Landroid/util/Log;->e(Ljava/lang/String;Ljava/lang/String;)I
 
                 instance-of v5, v4, Lnb/b;
                 if-nez v5, :is_media
@@ -231,8 +234,9 @@ val centerPostMediaPatch = bytecodePatch(
                 if-eqz v5, :next
 
                 :is_media
-                const-string v9, "CenterPostMedia: MATCHED, queuing AlignmentSpan"
-                invoke-static {v9}, Lwc/i;->e(Ljava/lang/String;)V
+                const-string v9, "CenterPostMedia"
+                const-string v10, "CenterPostMedia: MATCHED, queuing AlignmentSpan"
+                invoke-static {v9, v10}, Landroid/util/Log;->e(Ljava/lang/String;Ljava/lang/String;)I
                 new-instance v5, Landroid/text/style/AlignmentSpan${'$'}Standard;
                 sget-object v6, Landroid/text/Layout${'$'}Alignment;->ALIGN_CENTER:Landroid/text/Layout${'$'}Alignment;
                 invoke-direct {v5, v6}, Landroid/text/style/AlignmentSpan${'$'}Standard;-><init>(Landroid/text/Layout${'$'}Alignment;)V
