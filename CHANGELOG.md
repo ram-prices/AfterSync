@@ -1,3 +1,9 @@
+## [1.19.1](https://github.com/ram-prices/AfterSync/compare/v1.19.0...v1.19.1) (2026-09-14)
+
+### 🐛 Bug Fixes
+
+* stop discarding real height now that some URLs carry one ([5c1a291](https://github.com/ram-prices/AfterSync/commit/5c1a291628c4c8be8acb1ff97b501aec4b334fa8))
+
 ## [1.19.0](https://github.com/ram-prices/AfterSync/compare/v1.18.3...v1.19.0) (2026-09-14)
 
 ### ✨ New Features
