@@ -1,3 +1,9 @@
+## [1.21.6](https://github.com/ram-prices/AfterSync/compare/v1.21.5...v1.21.6) (2026-09-14)
+
+### 🐛 Bug Fixes
+
+* add setPost read-back diagnostic ([bd359a5](https://github.com/ram-prices/AfterSync/commit/bd359a5da64c4d31a2f0334aa0b3511d35035e03))
+
 ## [1.21.5](https://github.com/ram-prices/AfterSync/compare/v1.21.4...v1.21.5) (2026-09-14)
 
 ### 🐛 Bug Fixes
