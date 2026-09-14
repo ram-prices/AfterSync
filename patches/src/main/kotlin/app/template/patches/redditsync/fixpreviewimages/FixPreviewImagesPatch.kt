@@ -44,9 +44,9 @@ import com.android.tools.smali.dexlib2.iface.reference.StringReference
  * confirming a caught runtime exception rather than a verifier-level failure this time):
  * right after the height fix above, the method computes
  * `url.substring(0, url.indexOf("&height"))` to build the final display URL by
- * truncating everything from "&height" onward. Since real preview.redd.it URLs never
- * contain "&height" either, `indexOf` returns -1 and `substring(0, -1)` throws a
- * StringIndexOutOfBoundsException.
+ * truncating everything from "&height" onward. Real preview.redd.it URLs *embedded in a
+ * comment* never contain "&height" (confirmed by hand from several real examples), so
+ * `indexOf` returns -1 and `substring(0, -1)` throws a StringIndexOutOfBoundsException.
  *
  * A first attempt at this (v1.5.1) fixed the crash by searching for the first "&"
  * generally instead of "&height" specifically — that stopped the exception, but
@@ -54,10 +54,26 @@ import com.android.tools.smali.dexlib2.iface.reference.StringReference
  * URLs put the required signature ("&...&s=<hash>") after width, so truncating at the
  * first "&" strips it, and Reddit's CDN needs that signature to actually serve the
  * image (an empty reserved space where the image should be, no error, is exactly what a
- * failed/unauthorized image load looks like). This version removes the truncation
- * entirely instead of relocating it — the untouched URL, exactly as Reddit provided it,
- * is what should be used to load the image; only the width/height *values* needed to be
- * parsed out for the aspect-ratio math above, never the URL itself.
+ * failed/unauthorized image load looks like).
+ *
+ * A second attempt (v1.13.0-era, alongside fixCommentImageSizingPatch/
+ * fixPostBodyImagesPatch) removed the truncation entirely instead of relocating it, on
+ * the assumption that real preview.redd.it URLs never contain "&height" at all — true
+ * for every comment example checked, but confirmed FALSE for post-body-embedded images
+ * by a real device log + curl test: a post's embedded image URL can genuinely carry a
+ * trailing "&height=<n>" (e.g. "...&s=<hash>&height=2160"), and leaving that trailing
+ * param in place made Reddit's CDN 403 the request — while the *same* image loaded fine
+ * once this patch was disabled (restoring the original truncate-at-"&height" behavior,
+ * which is a no-op for comments but strips the trailing param for posts that have it).
+ *
+ * This version keeps the untouched-URL behavior for the case it was actually needed for
+ * (comments, where "&height" is genuinely absent) while restoring the truncation for the
+ * case that turned out to still need it (posts, where "&height" is genuinely present and
+ * apparently must be stripped for Reddit's CDN to accept the request): re-runs the same
+ * `indexOf("&height")` call, then only truncates when it's actually found (`if-ltz`
+ * guards against the -1 case instead of ever calling `substring(0, -1)`). The signature
+ * ("&s=<hash>") always precedes "&height" in every real URL seen so far, so truncating
+ * there never touches it — the same reasoning the v1.5.1 first-"&" attempt got wrong.
  *
  * All edits are anchored on the "preview.redd.it" string constant, which appears
  * exactly once in this method (confirmed by hand) — everything else this ~4500-line
@@ -123,11 +139,23 @@ val fixPreviewImagesPatch = bytecodePatch(
             )
         }
 
-        // Remove the entire truncation block (5 instructions: the "&height" const-string,
-        // the indexOf call, its result, the substring call, and its result overwriting
-        // the URL register) rather than fixing its string constant. With nothing left to
-        // overwrite it, the URL register keeps the untouched value it already held —
-        // the real preview.redd.it URL, signature and all.
+        // Replace the unconditional 5-instruction truncation block with a guarded
+        // version using the exact same registers the original code already used here
+        // (v2 = URL string, v3 = scratch/indexOf result, v8 = already-live "0" constant
+        // from earlier in this method) — only this block's instructions change, nothing
+        // around it, so those registers' meanings are unaffected by the edit.
         repeat(5) { implementation.removeInstruction(ampHeightIndex) }
+        method.addInstructions(
+            ampHeightIndex,
+            """
+                const-string v3, "&height"
+                invoke-virtual {v2, v3}, Ljava/lang/String;->indexOf(Ljava/lang/String;)I
+                move-result v3
+                if-ltz v3, :no_height_param
+                invoke-virtual {v2, v8, v3}, Ljava/lang/String;->substring(II)Ljava/lang/String;
+                move-result-object v2
+                :no_height_param
+            """,
+        )
     }
 }
