@@ -100,6 +100,20 @@ import com.android.tools.smali.dexlib2.immutable.ImmutableMethodParameter
  * no new registers, no new branches, nothing for the existing method's type inference to
  * trip over.
  *
+ * A THIRD assumption in this same block needed revisiting once fixCommentImageDimensionsPatch
+ * shipped (which injects a real "&height=<n>" into some comment-embedded preview.redd.it URLs
+ * straight from Reddit's own media_metadata, before this method ever sees them — see that
+ * patch for the mechanism): the height-reuse fix above (`move p2, v1`, height := width)
+ * unconditionally discards ANY real height that might now be present in the URL, since when
+ * it was written NO comment URL ever carried one. Confirmed by hand this fully defeated
+ * fixCommentImageDimensionsPatch — real device testing after that patch shipped still showed
+ * forced-square boxes, because this line always overwrote the freshly-injected real height
+ * with the width guess regardless. Fixed the same way as the other two conditionals in this
+ * file: a new from-scratch helper (`resolveHeight`) that reads the real `height` query
+ * parameter when present and only falls back to the width guess when it's genuinely absent
+ * or unparseable, called via a 2-instruction `invoke-static`+`move-result` pair in place of
+ * the old unconditional `move`.
+ *
  * All edits are anchored on the "preview.redd.it" string constant, which appears
  * exactly once in this method (confirmed by hand) — everything else this ~4500-line
  * method does (every other URL type it recognizes, the video/gif/imgur/gallery handling,
@@ -141,11 +155,50 @@ val fixPreviewImagesPatch = bytecodePatch(
 
         // The height lookup+parse (originally instructions 22-25, offsets base+21
         // through base+24) has now shifted down by 3 to base+18 through base+21.
-        // Replace all 4 with one branch-free instruction: reuse the already-parsed
-        // width value (register v1) as the height too, instead of ever reading a
-        // "height" query parameter that real preview.redd.it URLs don't send.
+        // Replace all 4 with a call to a fresh helper: p2 still holds the Uri object at
+        // this point (untouched since the width parsing above used a different
+        // register), v1 holds the already-parsed width (int) to fall back to.
+        val resolveHeightImpl = ImmutableMethodImplementation(3, emptyList(), emptyList(), emptyList())
+        val resolveHeightDefinition = ImmutableMethod(
+            "Lnc/d;",
+            "resolveHeight",
+            listOf(
+                ImmutableMethodParameter("Landroid/net/Uri;", emptySet(), "uri"),
+                ImmutableMethodParameter("I", emptySet(), "fallbackWidth"),
+            ),
+            "I",
+            AccessFlags.PRIVATE.value or AccessFlags.STATIC.value,
+            emptySet(),
+            emptySet(),
+            resolveHeightImpl,
+        )
+        val resolveHeight = MutableMethod(resolveHeightDefinition)
+        resolveHeight.addInstructions(
+            """
+                const-string v0, "height"
+                invoke-virtual {p0, v0}, Landroid/net/Uri;->getQueryParameter(Ljava/lang/String;)Ljava/lang/String;
+                move-result-object v0
+                if-eqz v0, :fallback
+                :try_start
+                invoke-static {v0}, Ljava/lang/Integer;->parseInt(Ljava/lang/String;)I
+                move-result v0
+                return v0
+                :try_end
+                .catch Ljava/lang/Exception; {:try_start .. :try_end} :fallback
+                :fallback
+                return p1
+            """,
+        )
+        syncHtmlToSpannedConverterFingerprint.classDef.directMethods.add(resolveHeight)
+
         repeat(4) { implementation.removeInstruction(base + 18) }
-        method.addInstructions(base + 18, "move p2, v1")
+        method.addInstructions(
+            base + 18,
+            """
+                invoke-static {p2, v1}, Lnc/d;->resolveHeight(Landroid/net/Uri;I)I
+                move-result p2
+            """,
+        )
 
         // Searched fresh (rather than computed as a further fixed offset from "base")
         // since it comes after the edits above and this string constant is unique in
