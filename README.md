@@ -13,9 +13,9 @@ Click here to add these patches to Morphe: https://morphe.software/add-source?gi
 ## 🩹 Patches list
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.12.2](https://github.com/ram-prices/AfterSync/releases/tag/v1.12.2)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;21 patches total
+> **[v1.13.0](https://github.com/ram-prices/AfterSync/releases/tag/v1.13.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;22 patches total
 <details open>
-<summary>📦 com.laurencedawson.reddit_sync&nbsp;&nbsp;•&nbsp;&nbsp;21 patches</summary>
+<summary>📦 com.laurencedawson.reddit_sync&nbsp;&nbsp;•&nbsp;&nbsp;22 patches</summary>
 <br>
 
 **🎯 Supported versions:**
@@ -27,6 +27,7 @@ Click here to add these patches to Morphe: https://morphe.software/add-source?gi
 |----------|----------------|-----------|
 | [Clean up root settings menu](#clean-up-root-settings-menu) | Removes the "New" category ("Developer options", "Legacy settings", and its promotional banner) and moves "Run setup" into the "Other" category in Sync for Reddit's settings. |  |
 | [Clean up root settings menu (fix crash)](#clean-up-root-settings-menu-fix-crash) | Removes the dead "Developer options" visibility-check code left behind after removing it from Sync for Reddit's settings menu. |  |
+| [Fix inline comment image sizing](#fix-inline-comment-image-sizing) | Stops inline images and GIFs in comments/posts from being stretched to a square, and gives subreddit emote images a more generous box size. |  |
 | [Fix preview.redd.it comment/post images](#fix-preview-redd-it-comment-post-images) | Fixes comment and post images hosted on preview.redd.it (Reddit's current inline-image hosting) showing as a raw link instead of embedding properly in Sync for Reddit. |  |
 | [Move Sync Ultra setting](#move-sync-ultra-setting) | Moves the "Sync Ultra" entry in Sync for Reddit's settings from the "New" category to the top of the "Content" category. |  |
 | [Rebrand About screen](#rebrand-about-screen) | Renames "Everything else" to "About", removes "Help and support"/"Rate app!"/the original Credits entries, adds a row for the original app's version, and repurposes two Credits rows and their links for Morphe and this patch repo's GitHub page in Sync for Reddit. |  |

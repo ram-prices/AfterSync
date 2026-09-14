@@ -1,3 +1,9 @@
+## [1.13.0](https://github.com/ram-prices/AfterSync/compare/v1.12.2...v1.13.0) (2026-09-14)
+
+### ✨ New Features
+
+* stop inline comment images/GIFs from being stretched to a square ([304dae9](https://github.com/ram-prices/AfterSync/commit/304dae9f3bd1a5233d696ecd1451b976bac2cdf9))
+
 ## [1.12.2](https://github.com/ram-prices/AfterSync/compare/v1.12.1...v1.12.2) (2026-09-14)
 
 ### 🐛 Bug Fixes
