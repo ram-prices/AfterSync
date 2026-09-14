@@ -1,3 +1,9 @@
+## [1.21.7](https://github.com/ram-prices/AfterSync/compare/v1.21.6...v1.21.7) (2026-09-14)
+
+### 🐛 Bug Fixes
+
+* add checkpoint logging to isolate why setPost never fires ([2f7be48](https://github.com/ram-prices/AfterSync/commit/2f7be48cca9bd7557529b39235e2b3e03478f856))
+
 ## [1.21.6](https://github.com/ram-prices/AfterSync/compare/v1.21.5...v1.21.6) (2026-09-14)
 
 ### 🐛 Bug Fixes

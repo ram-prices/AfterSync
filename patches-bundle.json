@@ -1,7 +1,7 @@
 {
-  "created_at": "2026-09-14T16:46:16",
-  "description": "## [1.21.6](https://github.com/ram-prices/AfterSync/compare/v1.21.5...v1.21.6) (2026-09-14)\n\n### 🐛 Bug Fixes\n\n* add setPost read-back diagnostic ([bd359a5](https://github.com/ram-prices/AfterSync/commit/bd359a5da64c4d31a2f0334aa0b3511d35035e03))",
-  "download_url": "https://github.com/ram-prices/AfterSync/releases/download/v1.21.6/patches-1.21.6.mpp",
+  "created_at": "2026-09-14T16:53:06",
+  "description": "## [1.21.7](https://github.com/ram-prices/AfterSync/compare/v1.21.6...v1.21.7) (2026-09-14)\n\n### 🐛 Bug Fixes\n\n* add checkpoint logging to isolate why setPost never fires ([2f7be48](https://github.com/ram-prices/AfterSync/commit/2f7be48cca9bd7557529b39235e2b3e03478f856))",
+  "download_url": "https://github.com/ram-prices/AfterSync/releases/download/v1.21.7/patches-1.21.7.mpp",
   "signature_download_url": "",
-  "version": "1.21.6"
+  "version": "1.21.7"
 }
