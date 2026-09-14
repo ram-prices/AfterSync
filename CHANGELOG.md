@@ -1,3 +1,9 @@
+## [1.14.0](https://github.com/ram-prices/AfterSync/compare/v1.13.0...v1.14.0) (2026-09-14)
+
+### ✨ New Features
+
+* cap preview.redd.it comment images to a sticker-sized box ([c561774](https://github.com/ram-prices/AfterSync/commit/c561774811ee5bc414767e76385472ba7240f51e))
+
 ## [1.13.0](https://github.com/ram-prices/AfterSync/compare/v1.12.2...v1.13.0) (2026-09-14)
 
 ### ✨ New Features
