@@ -54,16 +54,19 @@ import com.android.tools.smali.dexlib2.immutable.ImmutableMethodParameter
  * 2. Lnc/d;->y(...) (the &lt;img&gt; HTML-tag handler, used for subreddit "emote" images
  *    embedded directly in a comment body) builds every such image with a fixed 42dp-square
  *    box — small and, combined with #1's stretching, especially noticeable. Bumped to
- *    120dp, matching the reference box size this same class's Giphy-embed code
- *    (Lnc/d;->y, the giphy%7C branch) already uses elsewhere for consistency.
+ *    160dp. Left square (rather than widened like #4 below) deliberately: this sits deep
+ *    inside a large, mostly-unexamined 8-local method, and safely widening it would need a
+ *    new scratch register whose liveness across the rest of that method isn't fully
+ *    understood — not worth the risk for what's a rarer code path (literal &lt;img&gt; tags
+ *    in comment HTML) than the Giphy and preview.redd.it paths below.
  *
  * 3. Lnc/d;->e(...) (SyncHtmlToSpannedConverter's main method, shared with
  *    fixPreviewImagesPatch.kt) sizes preview.redd.it comment images to the FULL available
  *    column width (`Lnc/a;->e`, confirmed by hand to be the rendering container's pixel
  *    width) — by far the biggest images in a comment, exactly matching the "too big,
  *    sticker-sized would be nicer" follow-up request once #1 above stopped them being
- *    stretched. Fixed by clamping that width to 120dp (same reference size as #2) via
- *    `Math.min(availableWidth, 120dp)` right after it's read, before any of the existing
+ *    stretched. Fixed by clamping that width to 160dp via
+ *    `Math.min(availableWidth, 160dp)` right after it's read, before any of the existing
  *    (unmodified) proportional-height math runs on it — a value it already knows how to
  *    handle correctly for any width, having previously only ever seen the full column
  *    width. Anchored on the specific `iget p1, p1, Lnc/a;->e:I` instruction (destination
@@ -88,15 +91,18 @@ import com.android.tools.smali.dexlib2.immutable.ImmutableMethodParameter
  *    100px-wide thumbnail wrapped in a 56dp icon-and-text "link chip"
  *    (Lnb/d;/InlineImageSpan) — never an actual inline GIF. Replaces that with a real
  *    animated embed (Lnb/c;/EmoteImageSpan, the same span class every other inline image
- *    in this file uses) at a fixed 120dp box, pointed at the higher-res
+ *    in this file uses) at a fixed 200dp × 112dp (~16:9) box — wide rather than square,
+ *    per explicit follow-up request, since most reaction GIFs/videos are landscape-shaped
+ *    and a square box left visible empty margins around them even once letterboxing (#1)
+ *    stopped the image itself from being stretched — pointed at the higher-res
  *    media1.giphy.com/.../200.gif URL the WITH-dimensions branch of this same method
  *    already uses. Since the real dimensions are still unknown, the box can't be made
- *    aspect-correct the way the with-dimensions case is — but letterboxing (see #1 above)
- *    means the real loaded GIF still won't be stretched to fill it. This is a full method
- *    body replacement, not an insertion: the new body was sized to fit in exactly the
- *    original's own `.locals 3` register budget (confirmed by hand, register-by-register)
- *    specifically to avoid the register-count pitfall documented in
- *    removeSyncUltraSetupPatch.kt.
+ *    genuinely aspect-correct the way the with-dimensions case is. This is a full method
+ *    body replacement built fresh via ImmutableMethod/ImmutableMethodImplementation with
+ *    an explicit 6-register count (4 locals + 2 parameter registers, one more scratch
+ *    register than the original/previous version needed for the two-int Lnb/c;
+ *    constructor) — see the register-count pitfall documented in
+ *    removeSyncUltraSetupPatch.kt for why this can't just be bumped in place.
  */
 val fixCommentImageSizingPatch = bytecodePatch(
     name = "Fix inline comment image sizing",
@@ -218,9 +224,9 @@ val fixCommentImageSizingPatch = bytecodePatch(
                     "what was inspected — re-check with apktool.",
             )
         }
-        imageTagMethod.replaceInstruction(boxSizeIndices.single(), "const/16 v2, 0x78")
+        imageTagMethod.replaceInstruction(boxSizeIndices.single(), "const/16 v2, 0xa0")
 
-        // 3. Cap preview.redd.it comment images to a sticker-sized 120dp box instead of
+        // 3. Cap preview.redd.it comment images to a sticker-sized 160dp box instead of
         // the full available column width.
         val htmlMethod = syncHtmlToSpannedConverterFingerprint.method
         val htmlImpl = htmlMethod.implementation!!
@@ -246,7 +252,7 @@ val fixCommentImageSizingPatch = bytecodePatch(
         htmlMethod.addInstructions(
             availableWidthIndex + 1,
             """
-                const/16 v0, 0x78
+                const/16 v0, 0xa0
                 invoke-static {v0}, Lt7/f0;->c(I)I
                 move-result v0
                 invoke-static {p1, v0}, Ljava/lang/Math;->min(II)I
@@ -255,16 +261,40 @@ val fixCommentImageSizingPatch = bytecodePatch(
         )
 
         // 4. Give Giphy embeds a real animated fallback when Reddit's own metadata for
-        // them is missing/invalid, instead of a tiny static-thumbnail link chip.
-        val giphyNoDimsFallback = syncHtmlToSpannedConverterFingerprint.classDef
-            .directMethods.firstOrNull { it.name == "a" && it.parameterTypes.size == 2 }
+        // them is missing/invalid, instead of a tiny static-thumbnail link chip. Uses a
+        // wide (200dp × 112dp, ~16:9) box instead of a square one, per explicit request —
+        // most reaction images/GIFs/videos are landscape-shaped, so this avoids the empty
+        // pillar-box margins a square box leaves around them (confirmed by hand: letterboxing
+        // from #1 above only avoids stretching, it doesn't stop the box itself from being
+        // visibly bigger than a landscape image actually needs). Rebuilt via
+        // ImmutableMethod/ImmutableMethodImplementation with an explicit 6-register count
+        // (4 locals + 2 parameter registers) rather than reusing the previous version's
+        // 5-register layout, since the two-int Lnb/c; constructor needs one more scratch
+        // register than the single-int one did.
+        val htmlConverterClass = syncHtmlToSpannedConverterFingerprint.classDef
+        val oldGiphyNoDimsFallback = htmlConverterClass.directMethods
+            .firstOrNull { it.name == "a" && it.parameterTypes.size == 2 }
             ?: error(
                 "Could not find SyncHtmlToSpannedConverter's no-dimensions Giphy fallback " +
                     "method (Lnc/d;->a). This build's method structure may differ from " +
                     "what was inspected — re-check with apktool.",
             )
-        val fallbackImpl = giphyNoDimsFallback.implementation!!
-        fallbackImpl.removeInstructions(0, fallbackImpl.instructions.size)
+        htmlConverterClass.directMethods.remove(oldGiphyNoDimsFallback)
+
+        val giphyNoDimsFallbackDefinition = ImmutableMethod(
+            "Lnc/d;",
+            "a",
+            listOf(
+                ImmutableMethodParameter("Loc/c;", emptySet(), "converter"),
+                ImmutableMethodParameter("Ljava/lang/String;", emptySet(), "giphyId"),
+            ),
+            "V",
+            AccessFlags.PRIVATE.value or AccessFlags.STATIC.value,
+            emptySet(),
+            emptySet(),
+            ImmutableMethodImplementation(6, emptyList(), emptyList(), emptyList()),
+        )
+        val giphyNoDimsFallback = MutableMethod(giphyNoDimsFallbackDefinition)
         giphyNoDimsFallback.addInstructions(
             """
                 new-instance v0, Ljava/lang/StringBuilder;
@@ -277,25 +307,29 @@ val fixCommentImageSizingPatch = bytecodePatch(
                 invoke-virtual {v0}, Ljava/lang/StringBuilder;->toString()Ljava/lang/String;
                 move-result-object p1
 
-                const/16 v0, 0x78
+                const/16 v0, 0xc8
                 invoke-static {v0}, Lt7/f0;->c(I)I
                 move-result v0
 
-                const/4 v1, 0x2
-                new-array v1, v1, [Ljava/lang/Object;
+                const/16 v1, 0x70
+                invoke-static {v1}, Lt7/f0;->c(I)I
+                move-result v1
 
-                new-instance v2, Lnb/c;
-                invoke-direct {v2, p1, v0}, Lnb/c;-><init>(Ljava/lang/String;I)V
+                const/4 v2, 0x2
+                new-array v2, v2, [Ljava/lang/Object;
+
+                new-instance v3, Lnb/c;
+                invoke-direct {v3, p1, v0, v1}, Lnb/c;-><init>(Ljava/lang/String;II)V
                 const/4 v0, 0x0
-                aput-object v2, v1, v0
+                aput-object v3, v2, v0
 
-                new-instance v2, Lmb/d;
-                invoke-direct {v2, p1}, Lmb/d;-><init>(Ljava/lang/String;)V
+                new-instance v3, Lmb/d;
+                invoke-direct {v3, p1}, Lmb/d;-><init>(Ljava/lang/String;)V
                 const/4 v0, 0x1
-                aput-object v2, v1, v0
+                aput-object v3, v2, v0
 
                 const-string v0, "￼"
-                invoke-virtual {p0, v0, v1}, Loc/c;->c(Ljava/lang/String;[Ljava/lang/Object;)V
+                invoke-virtual {p0, v0, v2}, Loc/c;->c(Ljava/lang/String;[Ljava/lang/Object;)V
 
                 const-string v0, "\n"
                 invoke-virtual {p0, v0}, Loc/c;->b(Ljava/lang/CharSequence;)V
@@ -303,5 +337,6 @@ val fixCommentImageSizingPatch = bytecodePatch(
                 return-void
             """,
         )
+        htmlConverterClass.directMethods.add(giphyNoDimsFallback)
     }
 }
