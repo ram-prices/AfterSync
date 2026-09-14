@@ -1,7 +1,7 @@
 {
-  "created_at": "2026-09-14T16:34:45",
-  "description": "## [1.21.4](https://github.com/ram-prices/AfterSync/compare/v1.21.3...v1.21.4) (2026-09-14)\n\n### 🐛 Bug Fixes\n\n* trigger a release for the centering diagnostic build ([e5d3bd2](https://github.com/ram-prices/AfterSync/commit/e5d3bd2a4e7064bd37786c0597d3aa9b36a9e463))",
-  "download_url": "https://github.com/ram-prices/AfterSync/releases/download/v1.21.4/patches-1.21.4.mpp",
+  "created_at": "2026-09-14T16:40:17",
+  "description": "## [1.21.5](https://github.com/ram-prices/AfterSync/compare/v1.21.4...v1.21.5) (2026-09-14)\n\n### 🐛 Bug Fixes\n\n* use real Log.e instead of this app's stripped logger for diagnostics ([21eefd6](https://github.com/ram-prices/AfterSync/commit/21eefd650181bbf27622c06670ae4c33da4eb525))",
+  "download_url": "https://github.com/ram-prices/AfterSync/releases/download/v1.21.5/patches-1.21.5.mpp",
   "signature_download_url": "",
-  "version": "1.21.4"
+  "version": "1.21.5"
 }

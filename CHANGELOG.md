@@ -1,3 +1,9 @@
+## [1.21.5](https://github.com/ram-prices/AfterSync/compare/v1.21.4...v1.21.5) (2026-09-14)
+
+### 🐛 Bug Fixes
+
+* use real Log.e instead of this app's stripped logger for diagnostics ([21eefd6](https://github.com/ram-prices/AfterSync/commit/21eefd650181bbf27622c06670ae4c33da4eb525))
+
 ## [1.21.4](https://github.com/ram-prices/AfterSync/compare/v1.21.3...v1.21.4) (2026-09-14)
 
 ### 🐛 Bug Fixes
