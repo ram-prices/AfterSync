@@ -16,9 +16,18 @@ import com.android.tools.smali.dexlib2.iface.instruction.formats.Instruction22c
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.iface.reference.StringReference
+import com.android.tools.smali.dexlib2.iface.reference.TypeReference
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethodImplementation
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethodParameter
+
+// Widened from the stock 2000px / 0.2f (5:1) values — see item 5 below. Matches the
+// values used by HK Morphe Patches' own "Fix inline images" patch, an unrelated
+// third-party patch this project was found to conflict with (see item 0's "&height"
+// dead-code note) — its source turned out to widen the exact same gate.
+private const val MAX_INLINE_IMAGE_DIMENSION_PX = 8192
+private const val WIDENED_ASPECT_RATIO_THRESHOLD = 0.05f
+private const val CAPTION_RELATIVE_TEXT_SIZE = 0.75f
 
 /**
  * Target app: Sync for Reddit (com.laurencedawson.reddit_sync), v23.06.30-13:39.
@@ -248,13 +257,54 @@ import com.android.tools.smali.dexlib2.immutable.ImmutableMethodParameter
  *    register than the original/previous version needed for the two-int Lnb/c;
  *    constructor) — see the register-count pitfall documented in
  *    removeSyncUltraSetupPatch.kt for why this can't just be bumped in place.
+ *
+ * Items 5 and 6 below originate from investigating a real device crash in an unrelated
+ * third-party patch bundle (HK Morphe Patches) that turned out to be caused by item 0's
+ * "&height" edit shifting execution order relative to that bundle's own "Fix inline
+ * images" patch (see item 0's dead-code note above). Reading that patch's source to fix
+ * the conflict turned up two things it does that this project didn't: a wider embedding
+ * gate, and image captions. Both are ported here in AfterSync's own style rather than
+ * copied verbatim — see each item for why.
+ *
+ * 5. Lnc/d;->e(...) rejects a preview.redd.it image from embedding inline at all (falling
+ *    back to a plain link) if it's wider/taller than 2000px or has an aspect ratio more
+ *    extreme than 5:1 (0.2f) — a separate gate from item 0's width/height substring check,
+ *    on the same "preview.redd.it"+"width"+"height" URLs that already pass it. Likely
+ *    explains a previously-unexplained report that "some media types don't embed" —
+ *    screenshots, infographics, and comic-strip-shaped images routinely exceed both.
+ *    Widened to 8192px and 20:1 (0.05f), matching HK Morphe Patches' own values. Both are
+ *    single-instruction constant replacements (register v3, used immediately by an
+ *    existing, unmodified comparison) — no new branches, no new registers.
+ *
+ * 6. The same method appends a caption below an embedded preview.redd.it image when the
+ *    markdown link's display text differs from its URL (e.g.
+ *    `[Great sunset photo](https://preview.redd.it/...)` vs. a bare autolinked URL, where
+ *    display text and URL are identical and no caption is wanted). HK Morphe Patches
+ *    implements this with a new class bundled in via Morphe's extendWith(...) extension
+ *    mechanism (compiled Java, packaged separately into the APK) plus a custom click-span
+ *    class so the caption also becomes the full-screen image viewer's title. This version
+ *    only ports the caption-below-the-image half: the logic is simple enough (an
+ *    empty/equalsIgnoreCase check plus two spans) to fit in one new static helper
+ *    (`maybeAppendCaption`, added to this same class) rather than needing extendWith(...)
+ *    — a mechanism this project has never used. The viewer-title half is deliberately not
+ *    ported: it requires intercepting the image's click behavior, and the class that
+ *    handles it (Lmb/d;, CustomUrlSpan) is a large, heavily-shared click handler used by
+ *    every other link type this method recognizes (settings deep links, tables, AMP
+ *    redirects, etc.), not just images — too much surface area to touch safely for what's
+ *    a minor extra. The call site is a single straight-line `invoke-static` inserted right
+ *    after the existing image-append call, with all branching logic inside the new helper
+ *    method instead of spliced into this giant existing one — the same reasoning already
+ *    validated by every other helper in this file, given this method's confirmed history
+ *    of VerifyError crashes from branches inserted directly into it (see item 0 above).
  */
 val fixCommentImageSizingPatch = bytecodePatch(
     name = "Fix inline comment/post images",
     description = "Fixes comment and post images hosted on preview.redd.it showing as a " +
-        "raw link instead of embedding, stops embedded images/GIFs from being stretched " +
-        "to a square, caps their size, and gives Giphy embeds a real animated fallback " +
-        "instead of a static link chip when Reddit's own size metadata for them is missing.",
+        "raw link instead of embedding, widens the size/aspect-ratio limits that reject " +
+        "large images from embedding at all, adds a caption below images whose link text " +
+        "isn't just the bare URL, stops embedded images/GIFs from being stretched to a " +
+        "square, caps their size, and gives Giphy embeds a real animated fallback instead " +
+        "of a static link chip when Reddit's own size metadata for them is missing.",
     default = true,
 ) {
     compatibleWith("com.laurencedawson.reddit_sync"("v23.06.30-13:39"))
@@ -622,5 +672,137 @@ val fixCommentImageSizingPatch = bytecodePatch(
             """,
         )
         htmlConverterClass.directMethods.add(giphyNoDimsFallback)
+
+        // 5. Widen the dimension/aspect-ratio gate that rejects a preview.redd.it image
+        // from embedding at all — see the class doc for why. Both constants are unique in
+        // this method (confirmed by hand via apktool), and each replacement touches only
+        // the single existing instruction that defines it (register v3, read immediately
+        // afterward by an existing, unmodified comparison) — no new registers or branches.
+        val aspectRatioThresholdIndex = htmlImpl.instructions.indexOfFirst { instruction ->
+            (instruction as? NarrowLiteralInstruction)?.narrowLiteral == 0.2f.toRawBits()
+        }
+        if (aspectRatioThresholdIndex == -1) {
+            error(
+                "Could not find the 0.2f aspect ratio threshold in " +
+                    "SyncHtmlToSpannedConverter's preview.redd.it handling. This build's " +
+                    "method structure may differ from what was inspected — re-check with " +
+                    "apktool.",
+            )
+        }
+        htmlMethod.replaceInstruction(
+            aspectRatioThresholdIndex,
+            "const v3, ${WIDENED_ASPECT_RATIO_THRESHOLD.toRawBits()}",
+        )
+
+        val dimensionThresholdIndex = htmlImpl.instructions.indexOfFirst { instruction ->
+            (instruction as? NarrowLiteralInstruction)?.narrowLiteral == 2000
+        }
+        if (dimensionThresholdIndex == -1) {
+            error(
+                "Could not find the 2000px image dimension threshold in " +
+                    "SyncHtmlToSpannedConverter's preview.redd.it handling. This build's " +
+                    "method structure may differ from what was inspected — re-check with " +
+                    "apktool.",
+            )
+        }
+        htmlMethod.replaceInstruction(dimensionThresholdIndex, "const/16 v3, $MAX_INLINE_IMAGE_DIMENSION_PX")
+
+        // 6. Append a caption below the image when its markdown link text isn't just the
+        // bare URL — see the class doc for why this is a new helper rather than a branch
+        // spliced into this method, and why the viewer-title half of HK Morphe Patches'
+        // version isn't ported.
+        val captionHelperImpl = ImmutableMethodImplementation(6, emptyList(), emptyList(), emptyList())
+        val captionHelperDefinition = ImmutableMethod(
+            "Lnc/d;",
+            "maybeAppendCaption",
+            listOf(
+                ImmutableMethodParameter("Loc/c;", emptySet(), "converter"),
+                ImmutableMethodParameter("Ljava/lang/String;", emptySet(), "linkText"),
+                ImmutableMethodParameter("Ljava/lang/String;", emptySet(), "url"),
+            ),
+            "V",
+            AccessFlags.PRIVATE.value or AccessFlags.STATIC.value,
+            emptySet(),
+            emptySet(),
+            captionHelperImpl,
+        )
+        val maybeAppendCaption = MutableMethod(captionHelperDefinition)
+        maybeAppendCaption.addInstructions(
+            """
+                invoke-virtual {p1}, Ljava/lang/String;->isEmpty()Z
+                move-result v0
+                if-nez v0, :no_caption
+
+                invoke-virtual {p1, p2}, Ljava/lang/String;->equalsIgnoreCase(Ljava/lang/String;)Z
+                move-result v0
+                if-nez v0, :no_caption
+
+                const-string v0, "\n"
+                invoke-virtual {p0, v0}, Loc/c;->b(Ljava/lang/CharSequence;)V
+
+                const/4 v0, 0x2
+                new-array v0, v0, [Ljava/lang/Object;
+
+                new-instance v1, Landroid/text/style/RelativeSizeSpan;
+                const v2, ${CAPTION_RELATIVE_TEXT_SIZE.toRawBits()}
+                invoke-direct {v1, v2}, Landroid/text/style/RelativeSizeSpan;-><init>(F)V
+                const/4 v2, 0x0
+                aput-object v1, v0, v2
+
+                new-instance v1, Landroid/text/style/AlignmentSpan${'$'}Standard;
+                sget-object v2, Landroid/text/Layout${'$'}Alignment;->ALIGN_CENTER:Landroid/text/Layout${'$'}Alignment;
+                invoke-direct {v1, v2}, Landroid/text/style/AlignmentSpan${'$'}Standard;-><init>(Landroid/text/Layout${'$'}Alignment;)V
+                const/4 v2, 0x1
+                aput-object v1, v0, v2
+
+                invoke-virtual {p0, p1, v0}, Loc/c;->c(Ljava/lang/String;[Ljava/lang/Object;)V
+
+                :no_caption
+                return-void
+            """.trimIndent(),
+        )
+        htmlConverterClass.directMethods.add(maybeAppendCaption)
+
+        // Anchor: the one EmoteImageSpan (Lnb/c;) construction after the gate above — the
+        // "known dimensions, passes the gate" branch that actually embeds the image inline
+        // (the other Lnb/c; construction sites elsewhere in this method are for unrelated
+        // link types and the no-metadata Giphy fallback already handled in item 4).
+        val imageSpanIndex = htmlImpl.instructions.withIndex().firstOrNull { (index, instruction) ->
+            index > dimensionThresholdIndex &&
+                instruction.opcode == Opcode.NEW_INSTANCE &&
+                ((instruction as? ReferenceInstruction)?.reference as? TypeReference)?.type == "Lnb/c;"
+        }?.index ?: error(
+            "Could not find the EmoteImageSpan (Lnb/c;) construction for the " +
+                "known-dimensions preview.redd.it image case in SyncHtmlToSpannedConverter. " +
+                "This build's method structure may differ from what was inspected — " +
+                "re-check with apktool.",
+        )
+
+        // The image span (+ its click-handling Lmb/d; sibling span) get appended to the
+        // converter a few instructions later via Loc/c;->c(...) — the first such call
+        // after the span construction above, and the point to append the caption right
+        // after.
+        val imageAppendIndex = htmlImpl.instructions.withIndex().firstOrNull { (index, instruction) ->
+            index > imageSpanIndex &&
+                instruction.opcode == Opcode.INVOKE_VIRTUAL &&
+                (instruction as? ReferenceInstruction)?.reference?.let { ref ->
+                    ref is MethodReference && ref.definingClass == "Loc/c;" && ref.name == "c"
+                } == true
+        }?.index ?: error(
+            "Could not find the Loc/c;->c(...) call that appends the known-dimensions " +
+                "preview.redd.it image span in SyncHtmlToSpannedConverter. This build's " +
+                "method structure may differ from what was inspected — re-check with " +
+                "apktool.",
+        )
+
+        // p0 = converter, v3 = the link's markdown display text (read once near the very
+        // top of this method via Loc/c;->t(...) and never reassigned on the path that
+        // reaches here), v2 = this image's URL (already truncated by item 0 above, which
+        // is fine for the text-vs-URL comparison — the only thing ever stripped from it is
+        // a trailing "&height=<n>" a caption phrase would never coincidentally match).
+        htmlMethod.addInstructions(
+            imageAppendIndex + 1,
+            "invoke-static {p0, v3, v2}, Lnc/d;->maybeAppendCaption(Loc/c;Ljava/lang/String;Ljava/lang/String;)V",
+        )
     }
 }
