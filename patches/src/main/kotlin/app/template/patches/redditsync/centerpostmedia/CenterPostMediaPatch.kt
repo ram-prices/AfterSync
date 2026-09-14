@@ -86,6 +86,12 @@ val centerPostMediaPatch = bytecodePatch(
             ),
         )
 
+        // 2 registers = 0 locals + 2 params (this + the "Z" param) — an instance method's
+        // implicit "this" (p0) needs its own register too, easy to forget since this body
+        // uses no local scratch registers at all (previously miscounted as 1, which broke
+        // patch application outright: InlineSmaliCompiler wraps every addInstructions call
+        // in a dummy method using the target's own declared registerCount/parameters/static
+        // flags, and "Z" (p1) had nowhere to fit in a 1-register non-static method).
         val setIsPostDefinition = ImmutableMethod(
             "Lnc/a;",
             "setPost",
@@ -94,7 +100,7 @@ val centerPostMediaPatch = bytecodePatch(
             AccessFlags.PUBLIC.value,
             emptySet(),
             emptySet(),
-            ImmutableMethodImplementation(1, emptyList(), emptyList(), emptyList()),
+            ImmutableMethodImplementation(2, emptyList(), emptyList(), emptyList()),
         )
         val setIsPost = MutableMethod(setIsPostDefinition)
         setIsPost.addInstructions(
