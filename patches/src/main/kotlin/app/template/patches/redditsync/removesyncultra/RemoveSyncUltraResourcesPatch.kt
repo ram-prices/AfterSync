@@ -2,6 +2,7 @@ package app.template.patches.redditsync.removesyncultra
 
 import app.morphe.patcher.patch.resourcePatch
 import app.template.patches.redditsync.moveultrasetting.moveUltraSettingPatch
+import app.template.patches.redditsync.removeultracloudbackup.removeUltraCloudBackupResourcesPatch
 import org.w3c.dom.Element
 
 private data class RelocatedPreference(
@@ -47,6 +48,15 @@ private fun localTagOf(element: Element) = element.localName ?: element.tagName.
  * the "Content" category — otherwise, if this patch ran first, it would find and delete the
  * entry from wherever it originally sat, and moveUltraSettingPatch's own search for it would
  * then fail.
+ *
+ * Also depends on removeUltraCloudBackupResourcesPatch, which independently removes
+ * "ultra_cloud" from the same "Cloud services" category (res/xml/cat_ultra.xml,
+ * key="ultra_cloud_section") that this patch empties out and deletes once ultra_paint/
+ * ultra_tag are relocated out of it. Confirmed the hard way on a real device: without this
+ * dependency, the patcher can run this patch first, which deletes the whole category —
+ * "ultra_cloud" included as collateral, since this patch never touches that key itself —
+ * before removeUltraCloudBackupResourcesPatch gets a chance to find and remove it on its
+ * own, crashing the whole patch run with "Could not find \"ultra_cloud\" in cat_ultra.xml."
  */
 val removeSyncUltraResourcesPatch = resourcePatch(
     name = "Remove Sync Ultra screen (resources)",
@@ -57,6 +67,7 @@ val removeSyncUltraResourcesPatch = resourcePatch(
     default = true,
 ) {
     dependsOn(moveUltraSettingPatch)
+    dependsOn(removeUltraCloudBackupResourcesPatch)
 
     compatibleWith("com.laurencedawson.reddit_sync"("v23.06.30-13:39"))
 

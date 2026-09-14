@@ -6,7 +6,10 @@ import app.morphe.patcher.extensions.InstructionExtensions.removeInstructions
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import app.template.patches.redditsync.removerestorepurchases.fingerprints.preferencesUltraFragmentFingerprint
+import app.template.patches.redditsync.removerestorepurchases.removeRestorePurchasesPatch
 import app.template.patches.redditsync.removesyncultra.fingerprints.preferencesCommentsFragmentFingerprint
+import app.template.patches.redditsync.removeultracloudbackup.removeUltraCloudBackupSetupPatch
+import app.template.patches.redditsync.removewebsitepreviews.removeWebsitePreviewsSetupPatch
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.reference.StringReference
@@ -55,6 +58,16 @@ import com.android.tools.smali.dexlib2.iface.reference.StringReference
  *    (Landroidx/preference/Preference;->A0) calls already used throughout this app, just
  *    passing the fragment itself (p0) as the listener instead of constructing a new
  *    R8-synthetic instance.
+ *
+ * Confirmed the hard way on a real device (the resource-patch equivalent of this same
+ * mistake broke removeUltraCloudBackupResourcesPatch — see removeSyncUltraResourcesPatch.kt):
+ * the 72-instruction span removed in step 1 is only exactly 72 instructions once
+ * removeWebsitePreviewsSetupPatch's "ultra_enhancements" block (4 instructions) and
+ * removeUltraCloudBackupSetupPatch's "ultra_cloud" block (6 instructions) have already been
+ * removed — both sit inside that same span in the unpatched method. Depends on both (and,
+ * for consistency, on removeRestorePurchasesPatch too, even though its block sits entirely
+ * before this patch's anchor) so the count is correct regardless of the patcher's chosen
+ * execution order.
  */
 val removeSyncUltraSetupPatch = bytecodePatch(
     name = "Remove Sync Ultra screen",
@@ -64,6 +77,9 @@ val removeSyncUltraSetupPatch = bytecodePatch(
     default = true,
 ) {
     dependsOn(removeSyncUltraResourcesPatch)
+    dependsOn(removeWebsitePreviewsSetupPatch)
+    dependsOn(removeUltraCloudBackupSetupPatch)
+    dependsOn(removeRestorePurchasesPatch)
 
     compatibleWith("com.laurencedawson.reddit_sync"("v23.06.30-13:39"))
 
