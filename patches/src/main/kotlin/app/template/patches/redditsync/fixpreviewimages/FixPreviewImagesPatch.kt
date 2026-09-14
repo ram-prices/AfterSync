@@ -2,10 +2,15 @@ package app.template.patches.redditsync.fixpreviewimages
 
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.patch.bytecodePatch
+import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import app.template.patches.redditsync.fixpreviewimages.fingerprints.syncHtmlToSpannedConverterFingerprint
+import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.reference.StringReference
+import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
+import com.android.tools.smali.dexlib2.immutable.ImmutableMethodImplementation
+import com.android.tools.smali.dexlib2.immutable.ImmutableMethodParameter
 
 /**
  * Target app: Sync for Reddit (com.laurencedawson.reddit_sync), v23.06.30-13:39.
@@ -69,11 +74,31 @@ import com.android.tools.smali.dexlib2.iface.reference.StringReference
  * This version keeps the untouched-URL behavior for the case it was actually needed for
  * (comments, where "&height" is genuinely absent) while restoring the truncation for the
  * case that turned out to still need it (posts, where "&height" is genuinely present and
- * apparently must be stripped for Reddit's CDN to accept the request): re-runs the same
- * `indexOf("&height")` call, then only truncates when it's actually found (`if-ltz`
- * guards against the -1 case instead of ever calling `substring(0, -1)`). The signature
+ * apparently must be stripped for Reddit's CDN to accept the request). The signature
  * ("&s=<hash>") always precedes "&height" in every real URL seen so far, so truncating
  * there never touches it — the same reasoning the v1.5.1 first-"&" attempt got wrong.
+ *
+ * A first attempt at THIS fix (also v1.19.0, reverted within the same version bump before
+ * release) spliced an `if-ltz` branch directly into this existing giant method at the
+ * "&height" call site — and immediately reproduced the exact failure class this method's
+ * own history already warned about (see the v1.4.0 note above): a real device crash log
+ * showed `VerifyError: ... type Conflict unexpected as arg to if-eqz/if-nez` in this exact
+ * method, at an offset consistent with that inserted branch. Splicing a NEW branch into
+ * this method's existing, heavily hand-optimized register/type layout is fragile even
+ * when the branch itself looks correct in isolation — the surrounding method's already-
+ * inferred register types don't necessarily tolerate a new control-flow join point.
+ *
+ * This version avoids that entirely by moving the conditional logic into a brand-new,
+ * independent static helper method (`truncateAtHeightParam`, added to this same class)
+ * instead of splicing anything into the existing method. A freshly-built method defines
+ * its own register types from scratch, so a branch inside IT carries none of the
+ * surrounding giant method's fragility — this is the same reasoning already validated by
+ * every from-scratch helper elsewhere in this project (e.g. EmoteImageSpan's `w4` in
+ * fixCommentImageSizingPatch.kt, which also branches internally with no issue). The call
+ * site inside the giant method shrinks to a single `invoke-static` + `move-result-object`
+ * pair touching only the one register (the URL string) already known safe to reassign —
+ * no new registers, no new branches, nothing for the existing method's type inference to
+ * trip over.
  *
  * All edits are anchored on the "preview.redd.it" string constant, which appears
  * exactly once in this method (confirmed by hand) — everything else this ~4500-line
@@ -139,22 +164,45 @@ val fixPreviewImagesPatch = bytecodePatch(
             )
         }
 
-        // Replace the unconditional 5-instruction truncation block with a guarded
-        // version using the exact same registers the original code already used here
-        // (v2 = URL string, v3 = scratch/indexOf result, v8 = already-live "0" constant
-        // from earlier in this method) — only this block's instructions change, nothing
-        // around it, so those registers' meanings are unaffected by the edit.
+        // New, fully independent static helper: does the same guarded truncation, but
+        // with its own fresh register allocation so the branch inside it can't conflict
+        // with the giant existing method's own inferred register types.
+        val truncateHelperImpl = ImmutableMethodImplementation(3, emptyList(), emptyList(), emptyList())
+        val truncateHelperDefinition = ImmutableMethod(
+            "Lnc/d;",
+            "truncateAtHeightParam",
+            listOf(ImmutableMethodParameter("Ljava/lang/String;", emptySet(), "url")),
+            "Ljava/lang/String;",
+            AccessFlags.PRIVATE.value or AccessFlags.STATIC.value,
+            emptySet(),
+            emptySet(),
+            truncateHelperImpl,
+        )
+        val truncateHelper = MutableMethod(truncateHelperDefinition)
+        truncateHelper.addInstructions(
+            """
+                const-string v0, "&height"
+                invoke-virtual {p0, v0}, Ljava/lang/String;->indexOf(Ljava/lang/String;)I
+                move-result v0
+                if-ltz v0, :no_height_param
+                const/4 v1, 0x0
+                invoke-virtual {p0, v1, v0}, Ljava/lang/String;->substring(II)Ljava/lang/String;
+                move-result-object p0
+                :no_height_param
+                return-object p0
+            """,
+        )
+        syncHtmlToSpannedConverterFingerprint.classDef.directMethods.add(truncateHelper)
+
+        // Replace the old unconditional 5-instruction truncation block with a call to
+        // the helper above — touches only v2 (the URL string, already known safe to
+        // reassign here), nothing else in this method changes.
         repeat(5) { implementation.removeInstruction(ampHeightIndex) }
         method.addInstructions(
             ampHeightIndex,
             """
-                const-string v3, "&height"
-                invoke-virtual {v2, v3}, Ljava/lang/String;->indexOf(Ljava/lang/String;)I
-                move-result v3
-                if-ltz v3, :no_height_param
-                invoke-virtual {v2, v8, v3}, Ljava/lang/String;->substring(II)Ljava/lang/String;
+                invoke-static {v2}, Lnc/d;->truncateAtHeightParam(Ljava/lang/String;)Ljava/lang/String;
                 move-result-object v2
-                :no_height_param
             """,
         )
     }
