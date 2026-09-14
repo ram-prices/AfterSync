@@ -1,7 +1,7 @@
 {
-  "created_at": "2026-09-14T16:15:05",
-  "description": "## [1.21.3](https://github.com/ram-prices/AfterSync/compare/v1.21.2...v1.21.3) (2026-09-14)\n\n### 🐛 Bug Fixes\n\n* make new setPost/maybeCenterMediaSpans methods static ([6982558](https://github.com/ram-prices/AfterSync/commit/6982558a7f744cd1ae4243e073b21bc818b6f0aa))",
-  "download_url": "https://github.com/ram-prices/AfterSync/releases/download/v1.21.3/patches-1.21.3.mpp",
+  "created_at": "2026-09-14T16:34:45",
+  "description": "## [1.21.4](https://github.com/ram-prices/AfterSync/compare/v1.21.3...v1.21.4) (2026-09-14)\n\n### 🐛 Bug Fixes\n\n* trigger a release for the centering diagnostic build ([e5d3bd2](https://github.com/ram-prices/AfterSync/commit/e5d3bd2a4e7064bd37786c0597d3aa9b36a9e463))",
+  "download_url": "https://github.com/ram-prices/AfterSync/releases/download/v1.21.4/patches-1.21.4.mpp",
   "signature_download_url": "",
-  "version": "1.21.3"
+  "version": "1.21.4"
 }

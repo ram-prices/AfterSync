@@ -1,3 +1,9 @@
+## [1.21.4](https://github.com/ram-prices/AfterSync/compare/v1.21.3...v1.21.4) (2026-09-14)
+
+### 🐛 Bug Fixes
+
+* trigger a release for the centering diagnostic build ([e5d3bd2](https://github.com/ram-prices/AfterSync/commit/e5d3bd2a4e7064bd37786c0597d3aa9b36a9e463))
+
 ## [1.21.3](https://github.com/ram-prices/AfterSync/compare/v1.21.2...v1.21.3) (2026-09-14)
 
 ### 🐛 Bug Fixes
