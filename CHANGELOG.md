@@ -1,3 +1,9 @@
+## [1.21.9](https://github.com/ram-prices/AfterSync/compare/v1.21.8...v1.21.9) (2026-09-14)
+
+### 🐛 Bug Fixes
+
+* invert centering flag to isComment, set from CommentsHtmlTextView ([c8ec76b](https://github.com/ram-prices/AfterSync/commit/c8ec76b9b1810710225e336f9736f69105169dc6))
+
 ## [1.21.8](https://github.com/ram-prices/AfterSync/compare/v1.21.7...v1.21.8) (2026-09-14)
 
 ### 🐛 Bug Fixes

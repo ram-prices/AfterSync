@@ -1,7 +1,7 @@
 {
-  "created_at": "2026-09-14T17:02:06",
-  "description": "## [1.21.8](https://github.com/ram-prices/AfterSync/compare/v1.21.7...v1.21.8) (2026-09-14)\n\n### 🐛 Bug Fixes\n\n* pin dependsOn(fixPostBodyImagesPatch) for shared method edits ([fc2bcb7](https://github.com/ram-prices/AfterSync/commit/fc2bcb7729a8473c5fc34c34c9dbcb882a37b94f))",
-  "download_url": "https://github.com/ram-prices/AfterSync/releases/download/v1.21.8/patches-1.21.8.mpp",
+  "created_at": "2026-09-14T17:19:04",
+  "description": "## [1.21.9](https://github.com/ram-prices/AfterSync/compare/v1.21.8...v1.21.9) (2026-09-14)\n\n### 🐛 Bug Fixes\n\n* invert centering flag to isComment, set from CommentsHtmlTextView ([c8ec76b](https://github.com/ram-prices/AfterSync/commit/c8ec76b9b1810710225e336f9736f69105169dc6))",
+  "download_url": "https://github.com/ram-prices/AfterSync/releases/download/v1.21.9/patches-1.21.9.mpp",
   "signature_download_url": "",
-  "version": "1.21.8"
+  "version": "1.21.9"
 }
