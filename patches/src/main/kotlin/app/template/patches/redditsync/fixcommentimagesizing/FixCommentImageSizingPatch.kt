@@ -6,10 +6,13 @@ import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import app.template.patches.redditsync.fixcommentimagesizing.fingerprints.emoteImageSpanDrawFingerprint
 import app.template.patches.redditsync.fixcommentimagesizing.fingerprints.syncHtmlToSpannedImageTagFingerprint
+import app.template.patches.redditsync.fixpreviewimages.fingerprints.syncHtmlToSpannedConverterFingerprint
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.instruction.NarrowLiteralInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.formats.Instruction22c
+import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethodImplementation
@@ -38,25 +41,40 @@ import com.android.tools.smali.dexlib2.immutable.ImmutableMethodParameter
  *    deliberately left untouched — a fixed-size placeholder icon doesn't need aspect-ratio
  *    awareness the way a real photo does.
  *
- *    This does NOT fix every inline image's size to its true rendered dimensions — the
- *    span's reserved box (s×t) is unaffected, only what happens *inside* that box when
- *    drawing. For subreddit "emote" images (see #2 below) that's a real, if generous,
- *    fixed box. For preview.redd.it comment images specifically, s×t is set by
- *    fixPreviewImagesPatch.kt's `move p2, v1` (height := width) workaround — since real
- *    preview.redd.it URLs never carry a genuine height value, forcing the box itself to be
- *    genuinely aspect-correct (rather than just not-stretched) would mean recovering the
- *    image's real dimensions before the box is ever sized (e.g. an async re-layout after
- *    Glide's callback fires, or a network probe), which is real new architecture with its
- *    own failure modes — deliberately out of scope for this patch. Letterboxing at draw
- *    time already eliminates the actual visual distortion (the dominant part of the
- *    complaint) without touching that riskier, previously-crash-prone code path (see
- *    fixPreviewImagesPatch.kt's own history of two prior reverted attempts).
+ *    This does NOT make every inline image's reserved box genuinely aspect-correct — the
+ *    span's box (s×t) itself is unaffected, only what happens *inside* that box when
+ *    drawing. Making the box itself aspect-correct (rather than just not-stretched) would
+ *    mean recovering the image's real dimensions before it's ever sized (e.g. an async
+ *    re-layout after Glide's callback fires, or a network probe), which is real new
+ *    architecture with its own failure modes — deliberately out of scope here. Letterboxing
+ *    at draw time already eliminates the actual visual distortion (the dominant part of the
+ *    complaint) without touching that riskier territory.
  *
  * 2. Lnc/d;->y(...) (the &lt;img&gt; HTML-tag handler, used for subreddit "emote" images
  *    embedded directly in a comment body) builds every such image with a fixed 42dp-square
  *    box — small and, combined with #1's stretching, especially noticeable. Bumped to
  *    120dp, matching the reference box size this same class's Giphy-embed code
  *    (Lnc/d;->y, the giphy%7C branch) already uses elsewhere for consistency.
+ *
+ * 3. Lnc/d;->e(...) (SyncHtmlToSpannedConverter's main method, shared with
+ *    fixPreviewImagesPatch.kt) sizes preview.redd.it comment images to the FULL available
+ *    column width (`Lnc/a;->e`, confirmed by hand to be the rendering container's pixel
+ *    width) — by far the biggest images in a comment, exactly matching the "too big,
+ *    sticker-sized would be nicer" follow-up request once #1 above stopped them being
+ *    stretched. Fixed by clamping that width to 120dp (same reference size as #2) via
+ *    `Math.min(availableWidth, 120dp)` right after it's read, before any of the existing
+ *    (unmodified) proportional-height math runs on it — a value it already knows how to
+ *    handle correctly for any width, having previously only ever seen the full column
+ *    width. Anchored on the specific `iget p1, p1, Lnc/a;->e:I` instruction (destination
+ *    and source register both `p1`, unique among several other reads of the same field
+ *    elsewhere in this method for unrelated purposes) rather than a fixed offset from any
+ *    string constant, since fixPreviewImagesPatch.kt removes the nearest useful string
+ *    anchor ("&height") in this same region — this way the two patches' edits stay
+ *    independent of whichever one the patcher happens to run first. Uses the temporarily-free
+ *    v0 register (immediately overwritten by the original, unmodified next instruction
+ *    either way) rather than a new local, avoiding this method's own prior crash history
+ *    with labeled-branch insertions (see fixPreviewImagesPatch.kt) by using
+ *    `Math.min(II)I` instead of a branch.
  */
 val fixCommentImageSizingPatch = bytecodePatch(
     name = "Fix inline comment image sizing",
@@ -178,5 +196,39 @@ val fixCommentImageSizingPatch = bytecodePatch(
             )
         }
         imageTagMethod.replaceInstruction(boxSizeIndices.single(), "const/16 v2, 0x78")
+
+        // 3. Cap preview.redd.it comment images to a sticker-sized 120dp box instead of
+        // the full available column width.
+        val htmlMethod = syncHtmlToSpannedConverterFingerprint.method
+        val htmlImpl = htmlMethod.implementation!!
+
+        val availableWidthIndex = htmlImpl.instructions.indexOfFirst { instruction ->
+            (instruction as? Instruction22c)?.let {
+                it.registerA == it.registerB &&
+                    (it.reference as? FieldReference)?.let { field ->
+                        field.definingClass == "Lnc/a;" && field.name == "e"
+                    } == true
+            } == true
+        }
+
+        if (availableWidthIndex == -1) {
+            error(
+                "Could not find the self-referential \"iget p1, p1, Lnc/a;->e:I\" " +
+                    "available-width read in SyncHtmlToSpannedConverter's preview.redd.it " +
+                    "handling. This build's method structure may differ from what was " +
+                    "inspected — re-check with apktool.",
+            )
+        }
+
+        htmlMethod.addInstructions(
+            availableWidthIndex + 1,
+            """
+                const/16 v0, 0x78
+                invoke-static {v0}, Lt7/f0;->c(I)I
+                move-result v0
+                invoke-static {p1, v0}, Ljava/lang/Math;->min(II)I
+                move-result p1
+            """,
+        )
     }
 }
