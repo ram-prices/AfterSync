@@ -1,3 +1,9 @@
+## [1.21.15](https://github.com/ram-prices/AfterSync/compare/v1.21.14...v1.21.15) (2026-09-14)
+
+### 🐛 Bug Fixes
+
+* fix tap zone for centered post images ([9dbcbeb](https://github.com/ram-prices/AfterSync/commit/9dbcbeb9371624a25e8105d916d2d59dcdabfa54))
+
 ## [1.21.14](https://github.com/ram-prices/AfterSync/compare/v1.21.13...v1.21.14) (2026-09-14)
 
 ### 🐛 Bug Fixes
