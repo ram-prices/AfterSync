@@ -1,7 +1,7 @@
 {
-  "created_at": "2026-09-14T16:04:16",
-  "description": "## [1.21.2](https://github.com/ram-prices/AfterSync/compare/v1.21.1...v1.21.2) (2026-09-14)\n\n### 🐛 Bug Fixes\n\n* correct setPost's register count (needed 2, declared 1) ([acb3f1d](https://github.com/ram-prices/AfterSync/commit/acb3f1d8ba83527e50d467c94d250d0389ece816))",
-  "download_url": "https://github.com/ram-prices/AfterSync/releases/download/v1.21.2/patches-1.21.2.mpp",
+  "created_at": "2026-09-14T16:15:05",
+  "description": "## [1.21.3](https://github.com/ram-prices/AfterSync/compare/v1.21.2...v1.21.3) (2026-09-14)\n\n### 🐛 Bug Fixes\n\n* make new setPost/maybeCenterMediaSpans methods static ([6982558](https://github.com/ram-prices/AfterSync/commit/6982558a7f744cd1ae4243e073b21bc818b6f0aa))",
+  "download_url": "https://github.com/ram-prices/AfterSync/releases/download/v1.21.3/patches-1.21.3.mpp",
   "signature_download_url": "",
-  "version": "1.21.2"
+  "version": "1.21.3"
 }

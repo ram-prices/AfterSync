@@ -1,3 +1,9 @@
+## [1.21.3](https://github.com/ram-prices/AfterSync/compare/v1.21.2...v1.21.3) (2026-09-14)
+
+### 🐛 Bug Fixes
+
+* make new setPost/maybeCenterMediaSpans methods static ([6982558](https://github.com/ram-prices/AfterSync/commit/6982558a7f744cd1ae4243e073b21bc818b6f0aa))
+
 ## [1.21.2](https://github.com/ram-prices/AfterSync/compare/v1.21.1...v1.21.2) (2026-09-14)
 
 ### 🐛 Bug Fixes
