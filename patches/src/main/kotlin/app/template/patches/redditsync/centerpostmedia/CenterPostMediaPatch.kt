@@ -108,7 +108,12 @@ val centerPostMediaPatch = bytecodePatch(
         // via a real device crash log showing the whole app failing to even instantiate its
         // Application class. Static sidesteps the direct/virtual distinction entirely.
         //
-        // 2 registers = 0 locals + 2 params (the Lnc/a; receiver + the "Z" value).
+        // TEMPORARY diagnostic: log whether setPost is even reached and whether the field
+        // write sticks when read back immediately — maybeCenterMediaSpans always sees
+        // isPost=false on-device, so this narrows down whether the bug is in the write side
+        // (this method / its call site in PostCommentHolder.h()) or something stranger.
+        //
+        // 5 registers = 3 locals (v0-v2, only needed for the log building) + 2 params.
         val setIsPostDefinition = ImmutableMethod(
             "Lnc/a;",
             "setPost",
@@ -120,12 +125,27 @@ val centerPostMediaPatch = bytecodePatch(
             AccessFlags.PUBLIC.value or AccessFlags.STATIC.value,
             emptySet(),
             emptySet(),
-            ImmutableMethodImplementation(2, emptyList(), emptyList(), emptyList()),
+            ImmutableMethodImplementation(5, emptyList(), emptyList(), emptyList()),
         )
         val setIsPost = MutableMethod(setIsPostDefinition)
         setIsPost.addInstructions(
             """
                 iput-boolean p1, p0, Lnc/a;->isPost:Z
+
+                new-instance v0, Ljava/lang/StringBuilder;
+                invoke-direct {v0}, Ljava/lang/StringBuilder;-><init>()V
+                const-string v1, "CenterPostMedia: setPost called with isPost="
+                invoke-virtual {v0, v1}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
+                invoke-virtual {v0, p1}, Ljava/lang/StringBuilder;->append(Z)Ljava/lang/StringBuilder;
+                const-string v1, ", read back as="
+                invoke-virtual {v0, v1}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
+                iget-boolean v2, p0, Lnc/a;->isPost:Z
+                invoke-virtual {v0, v2}, Ljava/lang/StringBuilder;->append(Z)Ljava/lang/StringBuilder;
+                invoke-virtual {v0}, Ljava/lang/StringBuilder;->toString()Ljava/lang/String;
+                move-result-object v0
+                const-string v1, "CenterPostMedia"
+                invoke-static {v1, v0}, Landroid/util/Log;->e(Ljava/lang/String;Ljava/lang/String;)I
+
                 return-object p0
             """,
         )
