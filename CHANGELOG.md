@@ -1,3 +1,9 @@
+## [1.21.11](https://github.com/ram-prices/AfterSync/compare/v1.21.10...v1.21.11) (2026-09-14)
+
+### 🐛 Bug Fixes
+
+* keep the &height marker string for third-party patch compatibility ([8b07ace](https://github.com/ram-prices/AfterSync/commit/8b07ace17a8ca8d8307a37aec6c7b67aa55f3860))
+
 ## [1.21.10](https://github.com/ram-prices/AfterSync/compare/v1.21.9...v1.21.10) (2026-09-14)
 
 ### 🐛 Bug Fixes
