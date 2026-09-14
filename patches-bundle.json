@@ -1,7 +1,7 @@
 {
-  "created_at": "2026-09-14T00:01:42",
-  "description": "## [1.12.1](https://github.com/ram-prices/AfterSync/compare/v1.12.0...v1.12.1) (2026-09-14)\n\n### 🐛 Bug Fixes\n\n* pin patch ordering so the Sync Ultra removal doesn't race sibling patches ([1bbb48f](https://github.com/ram-prices/AfterSync/commit/1bbb48f244a849de1c5120e24adbfcd50b2dd4ec))",
-  "download_url": "https://github.com/ram-prices/AfterSync/releases/download/v1.12.1/patches-1.12.1.mpp",
+  "created_at": "2026-09-14T00:21:55",
+  "description": "## [1.12.2](https://github.com/ram-prices/AfterSync/compare/v1.12.1...v1.12.2) (2026-09-14)\n\n### 🐛 Bug Fixes\n\n* retarget Ultra perk relocation to the right Comments screen, fix VerifyError ([7b039e1](https://github.com/ram-prices/AfterSync/commit/7b039e12bd1c667414d225f8cbbfd186c9f0ad2f))",
+  "download_url": "https://github.com/ram-prices/AfterSync/releases/download/v1.12.2/patches-1.12.2.mpp",
   "signature_download_url": "",
-  "version": "1.12.1"
+  "version": "1.12.2"
 }

@@ -13,7 +13,7 @@ Click here to add these patches to Morphe: https://morphe.software/add-source?gi
 ## 🩹 Patches list
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.12.1](https://github.com/ram-prices/AfterSync/releases/tag/v1.12.1)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;21 patches total
+> **[v1.12.2](https://github.com/ram-prices/AfterSync/releases/tag/v1.12.2)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;21 patches total
 <details open>
 <summary>📦 com.laurencedawson.reddit_sync&nbsp;&nbsp;•&nbsp;&nbsp;21 patches</summary>
 <br>
@@ -37,7 +37,7 @@ Click here to add these patches to Morphe: https://morphe.software/add-source?gi
 | [Remove Restore purchases](#remove-restore-purchases) | Removes the "Restore purchases" entry from Sync for Reddit's settings, plus the Sync Ultra screen's "Restore subscription" and dev-only "Reset subscription locally" buttons, now that Ultra and ad removal are unlocked unconditionally and don't depend on this state. |  |
 | [Remove Restore purchases (resources)](#remove-restore-purchases-resources) | Removes the "Restore purchases" entry from Sync for Reddit's settings, plus the Sync Ultra screen's "Restore subscription" and dev-only "Reset subscription locally" buttons, now that Ultra and ad removal are unlocked unconditionally and don't depend on this state. |  |
 | [Remove Sync Ultra screen](#remove-sync-ultra-screen) | Relocates "Translate text"/"Restore removed comments"/"Paint users"/"Tag users" click behavior onto the Comments settings screen, and strips the now-pointless preference-wiring setup code from the Sync Ultra screen. |  |
-| [Remove Sync Ultra screen (resources)](#remove-sync-ultra-screen-resources) | Relocates "Translate text"/"Restore removed comments" to a new "View tweaks" category and "Paint users"/"Tag users" to a new "Highlighting" category on the Comments settings screen, then removes everything else on the Sync Ultra screen, including its entry point in the root settings menu. |  |
+| [Remove Sync Ultra screen (resources)](#remove-sync-ultra-screen-resources) | Relocates "Translate text"/"Restore removed comments" into the existing "View tweaks" category and "Paint users"/"Tag users" into the existing "Highlighting" category on the Comments settings screen, then removes everything else on the Sync Ultra screen, including its entry point in the root settings menu. |  |
 | [Remove Ultra cloud backup](#remove-ultra-cloud-backup) | Removes the redundant, Firebase-backend-dependent "Cloud backup and restore" section, and the now-misleading "Settings cloud backup" shortcut to it, from Sync for Reddit's settings. |  |
 | [Remove Ultra cloud backup (resources)](#remove-ultra-cloud-backup-resources) | Removes the redundant, Firebase-backend-dependent "Cloud backup and restore" section, and the now-misleading "Settings cloud backup" shortcut to it, from Sync for Reddit's settings. |  |
 | [Remove Website previews](#remove-website-previews) | Removes the "Website previews" toggle from Sync for Reddit's Sync Ultra screen and disables the underlying feature. |  |

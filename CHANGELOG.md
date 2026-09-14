@@ -1,3 +1,9 @@
+## [1.12.2](https://github.com/ram-prices/AfterSync/compare/v1.12.1...v1.12.2) (2026-09-14)
+
+### 🐛 Bug Fixes
+
+* retarget Ultra perk relocation to the right Comments screen, fix VerifyError ([7b039e1](https://github.com/ram-prices/AfterSync/commit/7b039e12bd1c667414d225f8cbbfd186c9f0ad2f))
+
 ## [1.12.1](https://github.com/ram-prices/AfterSync/compare/v1.12.0...v1.12.1) (2026-09-14)
 
 ### 🐛 Bug Fixes

@@ -1,6 +1,6 @@
 {
   "NOTE": "Do NOT manually edit this file. This file is automatically updated when semantic release (release.yml) runs. Manually editing this file can break your releases and break third party tools that use this file.",
-  "version": "1.12.1",
+  "version": "1.12.2",
   "patches": [
     {
       "name": "Clean up root settings menu",
@@ -343,7 +343,7 @@
     },
     {
       "name": "Remove Sync Ultra screen (resources)",
-      "description": "Relocates \"Translate text\"/\"Restore removed comments\" to a new \"View tweaks\" category and \"Paint users\"/\"Tag users\" to a new \"Highlighting\" category on the Comments settings screen, then removes everything else on the Sync Ultra screen, including its entry point in the root settings menu.",
+      "description": "Relocates \"Translate text\"/\"Restore removed comments\" into the existing \"View tweaks\" category and \"Paint users\"/\"Tag users\" into the existing \"Highlighting\" category on the Comments settings screen, then removes everything else on the Sync Ultra screen, including its entry point in the root settings menu.",
       "default": true,
       "category": null,
       "dependencies": [
