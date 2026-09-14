@@ -6,92 +6,133 @@ import org.w3c.dom.Element
 /**
  * Target app: Sync for Reddit (com.laurencedawson.reddit_sync), v23.06.30-13:39.
  *
- * Experimental first step toward a broader "more expressive" visual pass (per explicit
- * request, loosely inspired by Material 3 Expressive's bigger/rounder shape language —
- * not a literal port of any specific app's implementation, since none of the actual
- * references found while scoping this turned out to have real Expressive motion/shape
- * code to copy; see project chat history for that investigation).
+ * Experimental step toward a broader "more expressive" visual pass (per explicit request,
+ * loosely inspired by Material 3 Expressive's bigger/rounder shape language — not a
+ * literal port of any specific app's implementation; see project chat history for the
+ * scoping investigation that led here).
  *
- * Sync for Reddit already ships the full Material Components shape-token system in
- * res/values/styles.xml — confirmed by hand via apktool: every M3-style button, card,
- * dialog, and sheet references one of a handful of central
- * `ShapeAppearance.M3.Sys.Shape.Corner.*` styles (via component-shape aliases like
- * `ShapeAppearance.M3.Comp.FilledButton.Container.Shape`), each just a `cornerSize` value.
- * Bumping those few central values is a pure resource edit — no bytecode, no risk of the
- * verifier/register issues this project has otherwise hit — and cascades to every
- * component using the M3 shape system at once.
+ * A first version of this patch widened the central `ShapeAppearance.M3.Sys.Shape.Corner.*`
+ * style tokens in res/values/styles.xml, reasoning that every M3 component references them
+ * indirectly. That version built and applied fine but was confirmed on a real device to
+ * have NO visible effect anywhere in the app. Root-caused by pulling the actual installed
+ * (patched) APK back off the device and decompiling it: the token edit really was present
+ * in the installed build, but tracing three concrete, really-rendered widgets (the "Post
+ * options" bottom sheet, a MaterialAlertDialog, and CardView) showed every one of them
+ * resolves its corner radius through a COMPLETELY SEPARATE, independent resource —
+ * app-specific custom styles or plain `dimens.xml` values — never through the
+ * `Sys.Shape.Corner.*` token chain at all. That token layer is present in the compiled
+ * resources (presumably vestigial Material Components library scaffolding) but nothing
+ * in Sync's actual UI reads it.
  *
- * Deliberately leaves `Corner.None` (0dp, used for full-bleed containers like the bottom
- * app bar) and `Corner.Full` (50%, used for pills/switches/circular indicators) untouched
- * — both are semantically "no corner radius" and "fully round" respectively, not points on
- * the size scale this patch is widening.
+ * This version targets what was actually confirmed to matter instead:
+ * - `ShapeAppearanceBottomSheetDialog_Rounded` (res/values/styles.xml) — Sync's own custom
+ *   style for its rounded modal bottom sheets (confirmed via the real "Post options" sheet
+ *   opened from a post's overflow menu on a real device). Only the two top corners are
+ *   rounded (it's a bottom sheet — the bottom corners are meant to stay square, flush with
+ *   the screen edge), so only those two items are touched.
+ * - `cardview_default_radius`/`mtrl_card_corner_radius` (res/values/dimens.xml) — the
+ *   legacy androidx CardView radius and its Material Components successor. Both exist
+ *   because this app was never fully migrated off the older CardView-based UI; touching
+ *   both covers whichever one any given card-like surface actually uses.
+ * - `mtrl_btn_corner_radius` (res/values/dimens.xml) — MaterialButton's corner radius.
+ * - `m3_chip_corner_size` (res/values/dimens.xml) — chip corner radius (e.g. the small
+ *   colored post-flair tags like "News"/"Rumour" on the frontpage).
  *
- * This is a first, deliberately small/reversible experiment (see the
- * experiment/m3-expressive-redesign branch) meant to be built and checked on a real
- * device before deciding whether/how far to take the rest of a visual redesign — resource
- * XML edits like this one are still never applied by CI (see project memory), so whether
- * this actually reads as "more expressive" across real screens, versus just being a
- * no-op because most of the app's own custom views don't reference these tokens at all,
- * can only be confirmed by looking at the app itself.
+ * Deliberately leaves `m3_alert_dialog_corner_size` (28dp) alone — already generously
+ * rounded, no need to push it further — and leaves every OTHER dimens.xml corner value
+ * (tooltips, snackbars, text input boxes, the navigation drawer, AppCompat/framework
+ * compat widgets like `abc_control_corner_material`) untouched, since those weren't
+ * confirmed to affect anything visible in Sync's own screens and widening them
+ * indiscriminately risks affecting unrelated system-provided widgets.
  */
 val expressiveShapesPatch = resourcePatch(
     name = "Expressive shapes (experimental)",
-    description = "Experimental: widens Sync's central Material shape-corner tokens " +
-        "(Small/Medium/Large/ExtraLarge) to a bigger, rounder scale, loosely inspired by " +
-        "Material 3 Expressive. Cascades to every component using the M3 shape system.",
+    description = "Experimental: widens the corner radius of cards, buttons, chips, and " +
+        "Sync's own custom bottom sheets to a bigger, rounder scale, loosely inspired by " +
+        "Material 3 Expressive.",
 ) {
     compatibleWith("com.laurencedawson.reddit_sync"("v23.06.30-13:39"))
 
     execute {
-        document("res/values/styles.xml").use { document ->
-            // dp value -> (original, widened)
-            val widenedCornerSizes = mapOf(
-                "ShapeAppearance.M3.Sys.Shape.Corner.Small" to ("8.0dp" to "12.0dp"),
-                "ShapeAppearance.M3.Sys.Shape.Corner.Medium" to ("12.0dp" to "20.0dp"),
-                "ShapeAppearance.M3.Sys.Shape.Corner.Large" to ("16.0dp" to "28.0dp"),
-                "ShapeAppearance.M3.Sys.Shape.Corner.ExtraLarge" to ("28.0dp" to "36.0dp"),
+        document("res/values/dimens.xml").use { document ->
+            // name -> (original, widened)
+            val widenedDimens = mapOf(
+                "cardview_default_radius" to ("2.0dp" to "16.0dp"),
+                "mtrl_card_corner_radius" to ("4.0dp" to "16.0dp"),
+                "mtrl_btn_corner_radius" to ("4.0dp" to "16.0dp"),
+                "m3_chip_corner_size" to ("8.0dp" to "16.0dp"),
             )
 
-            val styles = document.documentElement.getElementsByTagName("style")
+            val dimens = document.documentElement.getElementsByTagName("dimen")
             val found = mutableSetOf<String>()
 
-            for (i in 0 until styles.length) {
-                val style = styles.item(i) as? Element ?: continue
-                val name = style.getAttribute("name")
-                val target = widenedCornerSizes[name] ?: continue
+            for (i in 0 until dimens.length) {
+                val dimen = dimens.item(i) as? Element ?: continue
+                val name = dimen.getAttribute("name")
+                val target = widenedDimens[name] ?: continue
                 val (expectedOriginal, widened) = target
 
-                val items = style.getElementsByTagName("item")
-                var cornerSizeItem: Element? = null
-                for (j in 0 until items.length) {
-                    val item = items.item(j) as? Element ?: continue
-                    if (item.getAttribute("name") == "cornerSize") {
-                        cornerSizeItem = item
-                        break
-                    }
-                }
-                val item = cornerSizeItem ?: error(
-                    "Could not find the cornerSize item inside \"$name\" in styles.xml. " +
-                        "This build's resource structure may differ from what was " +
-                        "inspected — re-check with apktool.",
-                )
-
-                if (item.textContent != expectedOriginal) {
+                if (dimen.textContent != expectedOriginal) {
                     error(
-                        "Expected \"$name\"'s cornerSize to be \"$expectedOriginal\", found " +
-                            "\"${item.textContent}\". This build's resource structure may " +
+                        "Expected dimen \"$name\" to be \"$expectedOriginal\", found " +
+                            "\"${dimen.textContent}\". This build's resource structure may " +
                             "differ from what was inspected — re-check with apktool.",
                     )
                 }
-                item.textContent = widened
+                dimen.textContent = widened
                 found += name
             }
 
-            if (found != widenedCornerSizes.keys) {
+            if (found != widenedDimens.keys) {
                 error(
-                    "Expected to widen ${widenedCornerSizes.keys}, only found $found in " +
-                        "styles.xml. This build's resource structure may differ from what " +
+                    "Expected to widen ${widenedDimens.keys}, only found $found in " +
+                        "dimens.xml. This build's resource structure may differ from what " +
                         "was inspected — re-check with apktool.",
+                )
+            }
+        }
+
+        document("res/values/styles.xml").use { document ->
+            val styles = document.documentElement.getElementsByTagName("style")
+            var bottomSheetStyle: Element? = null
+            for (i in 0 until styles.length) {
+                val style = styles.item(i) as? Element ?: continue
+                if (style.getAttribute("name") == "ShapeAppearanceBottomSheetDialog_Rounded") {
+                    bottomSheetStyle = style
+                    break
+                }
+            }
+            val style = bottomSheetStyle ?: error(
+                "Could not find \"ShapeAppearanceBottomSheetDialog_Rounded\" in styles.xml. " +
+                    "This build's resource structure may differ from what was inspected — " +
+                    "re-check with apktool.",
+            )
+
+            val items = style.getElementsByTagName("item")
+            val topCornerItemNames = setOf("cornerSizeTopLeft", "cornerSizeTopRight")
+            val widened = mutableSetOf<String>()
+            for (i in 0 until items.length) {
+                val item = items.item(i) as? Element ?: continue
+                val itemName = item.getAttribute("name")
+                if (itemName !in topCornerItemNames) continue
+
+                if (item.textContent != "12.0dp") {
+                    error(
+                        "Expected \"ShapeAppearanceBottomSheetDialog_Rounded\"'s \"$itemName\" " +
+                            "to be \"12.0dp\", found \"${item.textContent}\". This build's " +
+                            "resource structure may differ from what was inspected — " +
+                            "re-check with apktool.",
+                    )
+                }
+                item.textContent = "24.0dp"
+                widened += itemName
+            }
+
+            if (widened != topCornerItemNames) {
+                error(
+                    "Expected to widen $topCornerItemNames, only found $widened in " +
+                        "\"ShapeAppearanceBottomSheetDialog_Rounded\". This build's resource " +
+                        "structure may differ from what was inspected — re-check with apktool.",
                 )
             }
         }
