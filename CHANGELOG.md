@@ -1,3 +1,9 @@
+## [1.21.13](https://github.com/ram-prices/AfterSync/compare/v1.21.12...v1.21.13) (2026-09-14)
+
+### 🐛 Bug Fixes
+
+* snapshot the link display text before it's clobbered ([ab2e022](https://github.com/ram-prices/AfterSync/commit/ab2e022dd1c1a1a8d0e54b74cebde5abe3d055fd))
+
 ## [1.21.12](https://github.com/ram-prices/AfterSync/compare/v1.21.11...v1.21.12) (2026-09-14)
 
 ### 🐛 Bug Fixes
