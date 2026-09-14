@@ -43,14 +43,26 @@ import com.android.tools.smali.dexlib2.immutable.ImmutableMethodParameter
  *
  * Implementation notes on where each piece lives, and why:
  * - The centering LOGIC (a loop + several instanceof checks + a conditional queue-add) is a
- *   brand-new method added to Loc/c; itself (`maybeCenterMediaSpans(Z)V`), built from scratch
- *   via ImmutableMethod/ImmutableMethodImplementation rather than spliced into any existing
- *   method — per the hard lesson from fixPreviewImagesPatch.kt's two verifier crashes this
- *   same project: a new branch/loop is only safe inside a method with its own fresh register
- *   types, never spliced into pre-optimized existing code. It's added to Loc/c; specifically
- *   (not some unrelated class) so it can freely `iget`/`iput` Loc/c$a;'s fields exactly like
- *   Loc/c;'s own existing methods already do — legal only because it's compiled as part of
- *   the same class.
+ *   brand-new STATIC method added to Loc/c; itself (`maybeCenterMediaSpans(Loc/c;Lnc/a;)V`,
+ *   taking the builder as an explicit first param rather than as an instance method's
+ *   implicit "this"), built from scratch via ImmutableMethod/ImmutableMethodImplementation
+ *   rather than spliced into any existing method — per the hard lesson from
+ *   fixPreviewImagesPatch.kt's two verifier crashes this same project: a new branch/loop is
+ *   only safe inside a method with its own fresh register types, never spliced into
+ *   pre-optimized existing code. It's added to Loc/c; specifically (not some unrelated
+ *   class) so it can freely `iget`/`iput` Loc/c$a;'s fields exactly like Loc/c;'s own
+ *   existing methods already do — legal only because it's compiled as part of the same
+ *   class. Static, like every other from-scratch helper in this project, was not just a
+ *   style choice: a first attempt made it a plain public instance method and added it to
+ *   `directMethods` — but dex's "direct" method category is only for static/private/
+ *   constructor methods, and a non-static, non-private, non-constructor method belongs in
+ *   `virtualMethods` instead. Getting this wrong doesn't just break one class — it corrupts
+ *   the dex file badly enough that ART refuses to load ANY class from it, confirmed via a
+ *   real device crash log: `Direct/virtual method ... not in expected list`, with the whole
+ *   app failing to even instantiate its own Application subclass. Making both new methods
+ *   static (taking their "receiver" as an explicit first parameter instead) sidesteps the
+ *   direct/virtual distinction entirely, the same way every prior helper in this project
+ *   already does.
  * - The call site inside HtmlTextView.H(Lnc/a;Ljava/lang/String;)V (an existing method) is
  *   two straight-line instructions with zero new branches: read the new boolean field, then
  *   unconditionally call the helper — inserted between the existing parse call and the
@@ -86,18 +98,26 @@ val centerPostMediaPatch = bytecodePatch(
             ),
         )
 
-        // 2 registers = 0 locals + 2 params (this + the "Z" param) — an instance method's
-        // implicit "this" (p0) needs its own register too, easy to forget since this body
-        // uses no local scratch registers at all (previously miscounted as 1, which broke
-        // patch application outright: InlineSmaliCompiler wraps every addInstructions call
-        // in a dummy method using the target's own declared registerCount/parameters/static
-        // flags, and "Z" (p1) had nowhere to fit in a 1-register non-static method).
+        // Static (matching every other from-scratch helper in this project), taking the
+        // Lnc/a; receiver as an explicit first param rather than as an instance method's
+        // implicit "this". This isn't just style: a plain public INSTANCE method belongs in
+        // dexlib2's virtualMethods, not directMethods (dex's "direct" category is only for
+        // static/private/constructor methods) — adding one to directMethods (as first
+        // attempted here) corrupts the dex file badly enough that ART refuses to load ANY
+        // class from it at all ("Direct/virtual method ... not in expected list"), confirmed
+        // via a real device crash log showing the whole app failing to even instantiate its
+        // Application class. Static sidesteps the direct/virtual distinction entirely.
+        //
+        // 2 registers = 0 locals + 2 params (the Lnc/a; receiver + the "Z" value).
         val setIsPostDefinition = ImmutableMethod(
             "Lnc/a;",
             "setPost",
-            listOf(ImmutableMethodParameter("Z", emptySet(), "isPost")),
+            listOf(
+                ImmutableMethodParameter("Lnc/a;", emptySet(), "options"),
+                ImmutableMethodParameter("Z", emptySet(), "isPost"),
+            ),
             "Lnc/a;",
-            AccessFlags.PUBLIC.value,
+            AccessFlags.PUBLIC.value or AccessFlags.STATIC.value,
             emptySet(),
             emptySet(),
             ImmutableMethodImplementation(2, emptyList(), emptyList(), emptyList()),
@@ -115,17 +135,25 @@ val centerPostMediaPatch = bytecodePatch(
         // method (s(Ljava/lang/Object;III)V) and its existing span queue (field "b").
         val builderClass = spannableBuilderAddSpanFingerprint.classDef
 
-        // 11 registers = 9 locals (v0-v8) + 2 params (this, options) — takes the whole
-        // Lnc/a; object (rather than a plain boolean) specifically so the call site inside
-        // HtmlTextView.H() (which only declares .locals 1) never needs a second scratch
-        // register: it just forwards its own untouched Lnc/a; parameter unchanged.
+        // Static, for the same dex direct/virtual reason as setPost above — takes the
+        // Loc/c; builder as an explicit first param instead of as an instance method's
+        // implicit "this".
+        //
+        // 11 registers = 9 locals (v0-v8) + 2 params (the builder, the options object) —
+        // takes the whole Lnc/a; object (rather than a plain boolean) specifically so the
+        // call site inside HtmlTextView.H() (which only declares .locals 1) never needs a
+        // second scratch register: it just forwards its own untouched Lnc/a; parameter
+        // unchanged.
         val centerHelperImpl = ImmutableMethodImplementation(11, emptyList(), emptyList(), emptyList())
         val centerHelperDefinition = ImmutableMethod(
             "Loc/c;",
             "maybeCenterMediaSpans",
-            listOf(ImmutableMethodParameter("Lnc/a;", emptySet(), "options")),
+            listOf(
+                ImmutableMethodParameter("Loc/c;", emptySet(), "builder"),
+                ImmutableMethodParameter("Lnc/a;", emptySet(), "options"),
+            ),
             "V",
-            AccessFlags.PUBLIC.value,
+            AccessFlags.PUBLIC.value or AccessFlags.STATIC.value,
             emptySet(),
             emptySet(),
             centerHelperImpl,
@@ -212,7 +240,7 @@ val centerPostMediaPatch = bytecodePatch(
         // extra scratch register.
         renderMethod.addInstructions(
             parseCallIndex + 1,
-            "invoke-virtual {v0, p1}, Loc/c;->maybeCenterMediaSpans(Lnc/a;)V",
+            "invoke-static {v0, p1}, Loc/c;->maybeCenterMediaSpans(Loc/c;Lnc/a;)V",
         )
 
         // 4. Flip the new field to true only for posts, anchored on Lnc/a;'s no-arg
@@ -241,7 +269,7 @@ val centerPostMediaPatch = bytecodePatch(
             optionsInitIndex + 1,
             """
                 const/4 v1, 0x1
-                invoke-virtual {v0, v1}, Lnc/a;->setPost(Z)Lnc/a;
+                invoke-static {v0, v1}, Lnc/a;->setPost(Lnc/a;Z)Lnc/a;
             """,
         )
     }
