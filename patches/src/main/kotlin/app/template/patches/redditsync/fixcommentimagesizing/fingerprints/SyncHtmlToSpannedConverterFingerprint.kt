@@ -1,4 +1,4 @@
-package app.template.patches.redditsync.fixpreviewimages.fingerprints
+package app.template.patches.redditsync.fixcommentimagesizing.fingerprints
 
 import app.morphe.patcher.fingerprint
 

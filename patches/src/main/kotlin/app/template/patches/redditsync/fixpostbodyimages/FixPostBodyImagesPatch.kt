@@ -16,7 +16,7 @@ import com.android.tools.smali.dexlib2.iface.reference.MethodReference
  *
  * Confirmed by hand via apktool: post bodies and comment bodies both render through the
  * exact same HTML→Spanned pipeline, SyncHtmlToSpannedConverter (Lnc/d;->e(...), already
- * patched by fixPreviewImagesPatch/fixCommentImageSizingPatch), driven by an Lnc/a;
+ * patched by fixCommentImageSizingPatch (formerly two separate patches, since merged)), driven by an Lnc/a;
  * ("Options.java") object that carries an available-width field (Lnc/a;->e:I, set via the
  * builder method Lnc/a;->d(I)Lnc/a;) that Lnc/d;->e(...) gates all image rendering on
  * (`if-lez` on that field rejects any image when it's `<= 0`).

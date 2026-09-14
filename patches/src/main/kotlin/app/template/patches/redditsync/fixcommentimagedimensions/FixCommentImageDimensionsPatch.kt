@@ -27,8 +27,9 @@ import com.android.tools.smali.dexlib2.immutable.ImmutableMethodParameter
  *    preview.redd.it image when its URL contains BOTH "width" and "height" query parameters.
  *    Confirmed from real examples: every comment-embedded preview.redd.it URL Reddit generates
  *    carries "width" but never "height" — this was already known (see
- *    fixPreviewImagesPatch.kt), and fixCommentImageSizingPatch.kt's fix for it was to reuse the
- *    parsed width value AS the height too ("a 1:1 aspect-ratio guess", per its own comment) so
+ *    fixCommentImageSizingPatch.kt's item 0, formerly a separate fixPreviewImagesPatch.kt
+ *    since merged), whose fix for that was to reuse the parsed width value AS the height
+ *    too ("a 1:1 aspect-ratio guess", per its own comment) so
  *    the app doesn't crash trying to parse a "height" parameter that isn't there. That guess is
  *    exactly what forces the box square for every comment image, regardless of the real photo's
  *    actual shape.
@@ -50,8 +51,10 @@ import com.android.tools.smali.dexlib2.immutable.ImmutableMethodParameter
  * "height", look up "media_metadata"/<id>/"s"/"y" for the real height, append it to the URL,
  * replace it in the text) as a fresh, self-contained method — built from scratch via
  * ImmutableMethod/ImmutableMethodImplementation rather than spliced into the existing giant
- * method, per the hard lesson from fixPreviewImagesPatch.kt's two verifier crashes this same
- * session: inserting a new branch/loop directly into an existing, heavily-optimized method is
+ * method, per the hard lesson from the two verifier crashes documented in
+ * fixCommentImageSizingPatch.kt's item 0 (formerly a separate fixPreviewImagesPatch.kt,
+ * since merged) earlier this same session: inserting a new branch/loop directly into an
+ * existing, heavily-optimized method is
  * fragile even when correct in isolation, but a brand-new method's own register types are
  * always safe to branch and loop in. The call site inside the giant method is a single
  * `invoke-static` + `move-result-object` pair, anchored on the "body" string constant (unique

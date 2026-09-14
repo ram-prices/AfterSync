@@ -23,10 +23,10 @@ import com.android.tools.smali.dexlib2.immutable.ImmutableMethodParameter
  * horizontally; media in comments should stay left-aligned as it already is.
  *
  * The HTML→Spanned pipeline (SyncHtmlToSpannedConverter, patched extensively by
- * fixCommentImageSizingPatch/fixPreviewImagesPatch/fixCommentImageDimensionsPatch) is shared
+ * fixCommentImageSizingPatch/fixCommentImageDimensionsPatch) is shared
  * between posts and comments and has no notion of "which screen is this for" threaded through
  * its internals — deliberately not touched here, both because it's already proven fragile to
- * new branches (see feedback in fixPreviewImagesPatch.kt's history) and because it doesn't
+ * new branches (see feedback in fixCommentImageSizingPatch.kt's item 0 history) and because it doesn't
  * need to be: every image/GIF/video span this pipeline creates gets queued (not yet applied)
  * on a Loc/c; ("SpannableTextViewStringBuilder") builder object via Loc/c;->s(...), and that
  * queue is only actually applied — via Loc/c;->d(), called from Loc/b;->F() — AFTER the whole
@@ -61,8 +61,9 @@ import com.android.tools.smali.dexlib2.immutable.ImmutableMethodParameter
  *   brand-new STATIC method added to Loc/c; itself (`maybeCenterMediaSpans(Loc/c;Lnc/a;)V`,
  *   taking the builder as an explicit first param rather than as an instance method's
  *   implicit "this"), built from scratch via ImmutableMethod/ImmutableMethodImplementation
- *   rather than spliced into any existing method — per the hard lesson from
- *   fixPreviewImagesPatch.kt's two verifier crashes this same project: a new branch/loop is
+ *   rather than spliced into any existing method — per the hard lesson from the two
+ *   verifier crashes documented in fixCommentImageSizingPatch.kt's item 0 (formerly a
+ *   separate fixPreviewImagesPatch.kt, since merged): a new branch/loop is
  *   only safe inside a method with its own fresh register types, never spliced into
  *   pre-optimized existing code. It's added to Loc/c; specifically (not some unrelated
  *   class) so it can freely `iget`/`iput` Loc/c$a;'s fields exactly like Loc/c;'s own
