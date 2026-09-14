@@ -1,3 +1,9 @@
+## [1.18.1](https://github.com/ram-prices/AfterSync/compare/v1.18.0...v1.18.1) (2026-09-14)
+
+### 🐛 Bug Fixes
+
+* stop stripping a real &height param that posts sometimes carry ([3be786e](https://github.com/ram-prices/AfterSync/commit/3be786e7298e7fae3ff4f3280445f13f2d5e2af4))
+
 ## [1.18.0](https://github.com/ram-prices/AfterSync/compare/v1.17.0...v1.18.0) (2026-09-14)
 
 ### ✨ New Features
