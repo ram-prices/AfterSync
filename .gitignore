@@ -129,3 +129,8 @@ node_modules/
 .idea/
 local.properties
 scratchpad/
+
+# Ad-hoc device screenshots/crops used for visual verification during development
+_device_screenshot*.png
+_card_corner*.png
+_corner_crop*.png
