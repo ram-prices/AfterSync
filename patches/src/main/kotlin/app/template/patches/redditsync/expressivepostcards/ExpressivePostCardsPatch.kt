@@ -38,9 +38,11 @@ import app.morphe.patcher.patch.resourcePatch
  * new CardView ancestor around the (unchanged, still `id="root"`) SimpleLinearLayout does
  * not affect how the holder finds any of its bound views.
  *
- * Also reduces the gap between cards from the first version (12dp/8dp) to a tighter 8dp/4dp
- * per explicit follow-up request — the first version's spacing read as too loose once cards
- * were actually visible.
+ * Also reduces the gap between cards from the first version (12dp/8dp) to a tighter 8dp/4dp,
+ * and sets `cardElevation` to 0dp (no drop shadow) rather than the original 4dp — both per
+ * explicit follow-up feedback once cards were actually visible: the gap read as too loose,
+ * and the shadowed/elevated look didn't match the flatter, shadow-free reference design
+ * (ReFra's own settings screen) the rest of this redesign is now following.
  */
 val expressivePostCardsPatch = resourcePatch(
     name = "Expressive post cards (experimental)",
@@ -80,7 +82,7 @@ val expressivePostCardsPatch = resourcePatch(
             cardView.setAttribute("android:layout_marginTop", "4dp")
             cardView.setAttribute("android:layout_marginBottom", "4dp")
             cardView.setAttribute("app:cardCornerRadius", "24dp")
-            cardView.setAttribute("app:cardElevation", "4dp")
+            cardView.setAttribute("app:cardElevation", "0dp")
             cardView.setAttribute("app:cardBackgroundColor", "?attr/colorSurface")
             cardView.setAttribute("app:cardPreventCornerOverlap", "true")
             cardView.setAttribute("app:cardUseCompatPadding", "false")
