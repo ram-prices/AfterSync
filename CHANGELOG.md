@@ -1,3 +1,9 @@
+## [1.21.17](https://github.com/ram-prices/AfterSync/compare/v1.21.16...v1.21.17) (2026-09-16)
+
+### 🐛 Bug Fixes
+
+* fix subreddit online-user count always showing 0 ([561324f](https://github.com/ram-prices/AfterSync/commit/561324f2ef29552cbbbec96eece4c625d5752fc1))
+
 ## [1.21.16](https://github.com/ram-prices/AfterSync/compare/v1.21.15...v1.21.16) (2026-09-14)
 
 ### 🐛 Bug Fixes
