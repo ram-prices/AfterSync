@@ -1,6 +1,6 @@
 {
   "NOTE": "Do NOT manually edit this file. This file is automatically updated when semantic release (release.yml) runs. Manually editing this file can break your releases and break third party tools that use this file.",
-  "version": "1.21.17",
+  "version": "1.21.18",
   "patches": [
     {
       "name": "Center media in posts",
@@ -171,8 +171,8 @@
       "options": []
     },
     {
-      "name": "Fix online user counter",
-      "description": "Fixes a subreddit's \"number of users online\" count always showing 0, by reading Reddit's current active_user_count field instead of the deprecated accounts_active field the app was still relying on.",
+      "name": "Hide online user counter",
+      "description": "Hides the subreddit info screen's \"number of users online\" count, which Reddit's API no longer provides to this app at all (confirmed — not a simple field rename), instead of always showing an incorrect 0. The member count is unaffected.",
       "default": true,
       "category": null,
       "dependencies": [],

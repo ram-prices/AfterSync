@@ -1,3 +1,9 @@
+## [1.21.18](https://github.com/ram-prices/AfterSync/compare/v1.21.17...v1.21.18) (2026-09-16)
+
+### 🐛 Bug Fixes
+
+* hide online user counter instead of showing a permanent 0 ([df9ce46](https://github.com/ram-prices/AfterSync/commit/df9ce46ee5dce973e890c9de7d3decd45b325a2e))
+
 ## [1.21.17](https://github.com/ram-prices/AfterSync/compare/v1.21.16...v1.21.17) (2026-09-16)
 
 ### 🐛 Bug Fixes

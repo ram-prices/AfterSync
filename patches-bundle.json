@@ -1,7 +1,7 @@
 {
-  "created_at": "2026-09-16T01:11:58",
-  "description": "## [1.21.17](https://github.com/ram-prices/AfterSync/compare/v1.21.16...v1.21.17) (2026-09-16)\n\n### 🐛 Bug Fixes\n\n* fix subreddit online-user count always showing 0 ([561324f](https://github.com/ram-prices/AfterSync/commit/561324f2ef29552cbbbec96eece4c625d5752fc1))",
-  "download_url": "https://github.com/ram-prices/AfterSync/releases/download/v1.21.17/patches-1.21.17.mpp",
+  "created_at": "2026-09-16T02:01:23",
+  "description": "## [1.21.18](https://github.com/ram-prices/AfterSync/compare/v1.21.17...v1.21.18) (2026-09-16)\n\n### 🐛 Bug Fixes\n\n* hide online user counter instead of showing a permanent 0 ([df9ce46](https://github.com/ram-prices/AfterSync/commit/df9ce46ee5dce973e890c9de7d3decd45b325a2e))",
+  "download_url": "https://github.com/ram-prices/AfterSync/releases/download/v1.21.18/patches-1.21.18.mpp",
   "signature_download_url": "",
-  "version": "1.21.17"
+  "version": "1.21.18"
 }
