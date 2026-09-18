@@ -302,6 +302,46 @@ private const val CAPTION_RELATIVE_TEXT_SIZE = 0.75f
  *    method instead of spliced into this giant existing one — the same reasoning already
  *    validated by every other helper in this file, given this method's confirmed history
  *    of VerifyError crashes from branches inserted directly into it (see item 0 above).
+ *
+ * 7. Per explicit report: a bare `https://i.redd.it/<id>.gif` (or `.jpeg`/`.png`) pasted as
+ *    a comment's OWN text, not wrapped in markdown image syntax, never plays or shows as a
+ *    real embedded image, just a small frozen thumbnail next to the raw URL text.
+ *
+ *    Confirmed by hand via apktool: a plain pasted link like this is a markdown
+ *    reference-style link (the surrounding method only runs for Lnc/d$h;/Lnc/d$o; AST
+ *    nodes, snudown's own reference-link/footnote node types), not an img tag, so it never
+ *    reaches the img-tag handler (item 2) or the preview.redd.it-specific code (items
+ *    0/3/5/6). This method's own per-link dispatch further down (guarded by the user's
+ *    "inlineImagePreviews" setting) already recognizes a direct image/GIF extension or
+ *    several known media hosts as eligible for some kind of inline preview, but builds an
+ *    Lnb/d; (InlineImageSpan) for it, not an Lnb/c; (EmoteImageSpan). Per this file's own
+ *    item 4 doc comment, Lnb/d; is a static, non-animated, 56dp icon-and-text "link chip"
+ *    — exactly the small frozen-thumbnail-plus-text row reported, never a real playing
+ *    embed, for the same reason item 4's no-metadata Giphy fallback used to have the same
+ *    problem before that item's fix.
+ *
+ *    Fixed the same way as item 4: build an Lnb/c; instead, at the same fixed 200dp x 112dp
+ *    (~16:9) box used there (this link's real dimensions are equally unknown here), instead
+ *    of Lnb/d;. Also skips the Lnc/b;-based footnote-registration + superscript-numbering
+ *    wrapper Lnb/d; went through on the way in — every OTHER genuine inline image this
+ *    method builds (preview.redd.it, translate/sync-settings icons) is inserted directly,
+ *    never through that wrapper, matching normal img-embed behavior instead of a numbered
+ *    footnote reference.
+ *
+ *    Anchored on the Lnb/d;-><init>(Ljava/lang/String;Ljava/lang/Integer;)V call, unique in
+ *    this method (confirmed by hand; the method's other Lnb/d; construction, near its very
+ *    start, uses the unrelated 1-arg constructor for an unrelated case). The 7 instructions
+ *    before it build the Lnc/b$a;/footnote wrapper and the 14 after it register the
+ *    footnote and insert its superscripted reference marker — replacing this whole
+ *    22-instruction, self-contained block (reached only after the per-link dispatch's own
+ *    pre-existing, unmodified eligibility check already passed — no new branch introduced,
+ *    only what already-eligible links turn into changes) with a same-style Lnb/c;
+ *    construction, matching item 4's approach exactly. v2 (the URL), v7/v8/v9 (the method's
+ *    stable 2/0/1 constants) and p0 (the converter) are the same registers items 0 and 4
+ *    already rely on being stable here. The final `move v0, v9` is kept as-is: whatever
+ *    later in this method reads this "was a preview added for this link" flag should see
+ *    the same true value it always did, since a preview (now a proper embed) is still what
+ *    gets added.
  */
 val fixCommentImageSizingPatch = bytecodePatch(
     name = "Fix inline comment/post images",
@@ -309,8 +349,10 @@ val fixCommentImageSizingPatch = bytecodePatch(
         "raw link instead of embedding, widens the size/aspect-ratio limits that reject " +
         "large images from embedding at all, adds a caption below images whose link text " +
         "isn't just the bare URL, stops embedded images/GIFs from being stretched to a " +
-        "square, caps their size, and gives Giphy embeds a real animated fallback instead " +
-        "of a static link chip when Reddit's own size metadata for them is missing.",
+        "square, caps their size, gives Giphy embeds a real animated fallback instead " +
+        "of a static link chip when Reddit's own size metadata for them is missing, and " +
+        "properly embeds bare i.redd.it (and similar) image/GIF links pasted directly in " +
+        "a comment instead of showing a small frozen link-preview chip.",
     default = true,
 ) {
     compatibleWith("com.laurencedawson.reddit_sync"("v23.06.30-13:39"))
@@ -977,6 +1019,63 @@ val fixCommentImageSizingPatch = bytecodePatch(
         htmlMethod.addInstructions(
             imageAppendIndex + 1,
             "invoke-static {p0, v10, v11}, Lnc/d;->maybeAppendCaption(Loc/c;Ljava/lang/String;Ljava/lang/String;)V",
+        )
+
+        // 7. Give bare i.redd.it (and similar) image/GIF links pasted directly in a
+        // comment a real Lnb/c; (EmoteImageSpan) embed instead of the Lnb/d;
+        // (InlineImageSpan) link-preview chip they currently get — see the class doc's
+        // item 7 for the full investigation and why this mirrors item 4 exactly.
+        val inlineImageSpanCtorIndex = htmlImpl.instructions.indexOfFirst { instruction ->
+            instruction.opcode == Opcode.INVOKE_DIRECT &&
+                (instruction as? ReferenceInstruction)?.reference?.let { ref ->
+                    ref is MethodReference &&
+                        ref.definingClass == "Lnb/d;" &&
+                        ref.name == "<init>" &&
+                        ref.parameterTypes == listOf("Ljava/lang/String;", "Ljava/lang/Integer;")
+                } == true
+        }
+
+        if (inlineImageSpanCtorIndex == -1) {
+            error(
+                "Could not find the InlineImageSpan (Lnb/d;) construction for the " +
+                    "inline-image-preview-eligible link case in SyncHtmlToSpannedConverter. " +
+                    "This build's method structure may differ from what was inspected — " +
+                    "re-check with apktool.",
+            )
+        }
+
+        // The 7 instructions before the constructor call build the Lnc/b$a;/footnote
+        // wrapper (2 new-instance + the ArrayList-size-based index math feeding the
+        // Integer arg); the 14 after it build the click-handling Lmb/d;, register the
+        // footnote via Lnc/b;->c(...), and insert its superscripted reference marker.
+        val footnoteBlockStart = inlineImageSpanCtorIndex - 7
+        htmlImpl.removeInstructions(footnoteBlockStart, 22)
+        htmlMethod.addInstructions(
+            footnoteBlockStart,
+            """
+                const/16 v0, 0xc8
+                invoke-static {v0}, Lt7/f0;->c(I)I
+                move-result v0
+
+                const/16 v1, 0x70
+                invoke-static {v1}, Lt7/f0;->c(I)I
+                move-result v1
+
+                new-array v5, v7, [Ljava/lang/Object;
+
+                new-instance v10, Lnb/c;
+                invoke-direct {v10, v2, v0, v1}, Lnb/c;-><init>(Ljava/lang/String;II)V
+                aput-object v10, v5, v8
+
+                new-instance v10, Lmb/d;
+                invoke-direct {v10, v2}, Lmb/d;-><init>(Ljava/lang/String;)V
+                aput-object v10, v5, v9
+
+                const-string v0, "${'￼'}"
+                invoke-virtual {p0, v0, v5}, Loc/c;->c(Ljava/lang/String;[Ljava/lang/Object;)V
+
+                move v0, v9
+            """,
         )
     }
 }
