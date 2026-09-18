@@ -1,6 +1,6 @@
 {
   "NOTE": "Do NOT manually edit this file. This file is automatically updated when semantic release (release.yml) runs. Manually editing this file can break your releases and break third party tools that use this file.",
-  "version": "1.21.18",
+  "version": "1.21.19",
   "patches": [
     {
       "name": "Center media in posts",
@@ -145,7 +145,7 @@
     },
     {
       "name": "Fix inline comment/post images",
-      "description": "Fixes comment and post images hosted on preview.redd.it showing as a raw link instead of embedding, widens the size/aspect-ratio limits that reject large images from embedding at all, adds a caption below images whose link text isn't just the bare URL, stops embedded images/GIFs from being stretched to a square, caps their size, and gives Giphy embeds a real animated fallback instead of a static link chip when Reddit's own size metadata for them is missing.",
+      "description": "Fixes comment and post images hosted on preview.redd.it showing as a raw link instead of embedding, widens the size/aspect-ratio limits that reject large images from embedding at all, adds a caption below images whose link text isn't just the bare URL, stops embedded images/GIFs from being stretched to a square, caps their size, gives Giphy embeds a real animated fallback instead of a static link chip when Reddit's own size metadata for them is missing, and properly embeds bare i.redd.it (and similar) image/GIF links pasted directly in a comment instead of showing a small frozen link-preview chip.",
       "default": true,
       "category": null,
       "dependencies": [],

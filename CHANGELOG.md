@@ -1,3 +1,9 @@
+## [1.21.19](https://github.com/ram-prices/AfterSync/compare/v1.21.18...v1.21.19) (2026-09-18)
+
+### 🐛 Bug Fixes
+
+* properly embed bare i.redd.it image/GIF links pasted in comments ([f58f349](https://github.com/ram-prices/AfterSync/commit/f58f3493cbda8f9eeb50f91d794506cc37b99b5b))
+
 ## [1.21.18](https://github.com/ram-prices/AfterSync/compare/v1.21.17...v1.21.18) (2026-09-16)
 
 ### 🐛 Bug Fixes
